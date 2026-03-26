@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Cpu, HardDrive, Monitor, MemoryStick, Zap, Send, CheckCircle2 } from "lucide-react";
+import { Cpu, Monitor, Zap, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useCustomBuilds } from "@/contexts/CustomBuildsContext";
 
 const buildTypes = [
   {
@@ -32,20 +33,13 @@ const buildTypes = [
   },
 ];
 
-const budgetRanges = [
-  "Under KES 50,000",
-  "KES 50,000 – 100,000",
-  "KES 100,000 – 200,000",
-  "KES 200,000 – 350,000",
-  "Above KES 350,000",
-];
-
 const useCases = [
   "Gaming", "Video Editing", "3D Rendering", "Programming",
   "Office Work", "Graphic Design", "Streaming", "General Use",
 ];
 
 const CustomBuildsSection = () => {
+  const { budgetRanges, addBuildRequest } = useCustomBuilds();
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedBudget, setSelectedBudget] = useState<string | null>(null);
   const [selectedUses, setSelectedUses] = useState<string[]>([]);
@@ -66,6 +60,14 @@ const CustomBuildsSection = () => {
       toast.error("Please fill in all required fields");
       return;
     }
+    addBuildRequest({
+      name,
+      phone,
+      buildType: selectedType,
+      budget: selectedBudget,
+      useCases: selectedUses,
+      notes,
+    });
     setSubmitted(true);
     toast.success("Build request submitted! We'll contact you within 24 hours.");
   }
@@ -152,16 +154,16 @@ const CustomBuildsSection = () => {
             <div className="flex flex-wrap gap-3">
               {budgetRanges.map((range) => (
                 <button
-                  key={range}
+                  key={range.id}
                   type="button"
-                  onClick={() => setSelectedBudget(range)}
+                  onClick={() => setSelectedBudget(range.label)}
                   className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
-                    selectedBudget === range
+                    selectedBudget === range.label
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border hover:border-primary hover:text-primary"
                   }`}
                 >
-                  {range}
+                  {range.label}
                 </button>
               ))}
             </div>

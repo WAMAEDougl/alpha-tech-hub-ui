@@ -13,6 +13,7 @@ import RepairManagement from "./components/admin/RepairManagement.tsx";
 import RepairTicketView from "./components/admin/RepairTicketView.tsx";
 import SiteSettingsPage from "./components/admin/SiteSettingsPage.tsx";
 import ReportsPage from "./components/admin/ReportsPage.tsx";
+import CustomBuildsPage from "./components/admin/CustomBuildsPage.tsx";
 import CartPage from "./pages/CartPage.tsx";
 import CheckoutPage from "./pages/CheckoutPage.tsx";
 import ProductDetailPage from "./pages/ProductDetailPage.tsx";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="repairs" element={<RepairManagement />} />
             <Route path="tickets/:ticketId" element={<RepairTicketView />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="custom-builds" element={<CustomBuildsPage />} />
             <Route path="settings" element={<SiteSettingsPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
