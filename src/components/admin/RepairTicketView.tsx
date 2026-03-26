@@ -159,7 +159,7 @@ const RepairTicketView = () => {
               )}
               <div className="flex gap-2">
                 <Input
-                  placeholder="Add a part (e.g. 15.6\" FHD IPS screen)"
+                  placeholder='Add a part (e.g. 15.6" FHD IPS screen)'
                   value={newPart}
                   onChange={e => setNewPart(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && addPart()}
