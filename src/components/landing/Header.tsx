@@ -42,7 +42,7 @@ const shopItems = [
   { label: "Laptops", hash: "#catalog" },
   { label: "Desktops", hash: "#catalog" },
   { label: "Accessories", hash: "#catalog" },
-  { label: "Networking", hash: "#catalog" },
+  { label: "Monitors", hash: "#catalog" },
 ];
 
 const serviceItems = [

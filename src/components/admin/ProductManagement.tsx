@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useProducts, Product } from "@/contexts/ProductsContext";
 import { toast } from "sonner";
 
-const CATEGORIES = ["Laptops", "Desktops", "Accessories", "Networking"];
+const CATEGORIES = ["Laptops", "Desktops", "Accessories", "Monitors"];
 const CONDITIONS = ["New", "Refurbished"] as const;
 
 type FormState = Omit<Product, "id"> & { id?: string };

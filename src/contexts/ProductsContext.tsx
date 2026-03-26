@@ -95,7 +95,7 @@ const defaultProducts: Product[] = [
   },
   {
     id: "5", sku: "ACC-005", name: 'Samsung 27" Curved', brand: "Samsung",
-    category: "Accessories", condition: "New", price: 32000, stock: 8, rating: 4,
+    category: "Monitors", condition: "New", price: 32000, stock: 8, rating: 4,
     summary: "27\" QHD 144Hz curved gaming monitor",
     description: "Immerse yourself in gaming with the Samsung 27-inch curved QHD monitor. The 1000R curvature wraps around your field of vision for a truly immersive experience. With 144Hz refresh rate and 1ms response time, every frame is crisp and smooth.",
     specs: [

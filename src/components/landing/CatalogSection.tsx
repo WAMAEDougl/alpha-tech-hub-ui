@@ -11,7 +11,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useProducts } from "@/contexts/ProductsContext";
 import { useNavigate } from "react-router-dom";
 
-const categories = ["All", "Laptops", "Desktops", "Accessories", "Networking"];
+const categories = ["All", "Laptops", "Desktops", "Accessories", "Monitors"];
 const brands = ["ASUS", "Dell", "HP", "Lenovo", "Logitech", "Samsung"];
 
 const CatalogSection = () => {
