@@ -8,15 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
-
-const products = [
-  { id: 1, name: "ASUS ROG Strix G16", price: 185000, rating: 5, category: "Laptops", brand: "ASUS", condition: "New", image: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=300&fit=crop", summary: "16\" Gaming Laptop, Intel i9, RTX 4070, 32GB RAM" },
-  { id: 2, name: "Logitech G502 X Plus", price: 8500, rating: 4, category: "Accessories", brand: "Logitech", condition: "New", image: "https://images.unsplash.com/photo-1527814050087-3793815479db?w=400&h=300&fit=crop", summary: "Wireless gaming mouse, LIGHTFORCE switches" },
-  { id: 3, name: "Dell XPS 13 Plus", price: 145000, rating: 5, category: "Laptops", brand: "Dell", condition: "New", image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=300&fit=crop", summary: "Ultra-portable, 13.4\" OLED, Intel i7, 16GB" },
-  { id: 4, name: "HP ProDesk 400 G9", price: 95000, rating: 4, category: "Desktops", brand: "HP", condition: "New", image: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&h=300&fit=crop", summary: "Business desktop, i5-12500, 8GB, 256GB SSD" },
-  { id: 5, name: "Samsung 27\" Curved", price: 32000, rating: 4, category: "Accessories", brand: "Samsung", condition: "New", image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400&h=300&fit=crop", summary: "27\" QHD 144Hz curved gaming monitor" },
-  { id: 6, name: "Lenovo ThinkPad X1 Carbon", price: 165000, rating: 5, category: "Laptops", brand: "Lenovo", condition: "Refurbished", image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400&h=300&fit=crop", summary: "14\" Business ultrabook, i7, 16GB, certified refurb" },
-];
+import { useProducts } from "@/contexts/ProductsContext";
+import { useNavigate } from "react-router-dom";
 
 const categories = ["All", "Laptops", "Desktops", "Accessories", "Networking"];
 const brands = ["ASUS", "Dell", "HP", "Lenovo", "Logitech", "Samsung"];
@@ -26,6 +19,8 @@ const CatalogSection = () => {
   const [priceRange, setPriceRange] = useState([0]);
   const [showFilters, setShowFilters] = useState(false);
   const { addItem } = useCart();
+  const { products } = useProducts();
+  const navigate = useNavigate();
 
   const filtered = products.filter(p =>
     (selectedCategory === "All" || p.category === selectedCategory) &&
@@ -118,10 +113,13 @@ const CatalogSection = () => {
                   transition={{ delay: i * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="group overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card
+                    className="group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/products/${product.id}`)}
+                  >
                     <div className="relative overflow-hidden">
                       <img
-                        src={product.image}
+                        src={product.images[0]}
                         alt={product.name}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
@@ -142,8 +140,9 @@ const CatalogSection = () => {
                       <p className="text-muted-foreground text-sm mb-3">{product.summary}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-xl font-bold text-primary">KES {product.price.toLocaleString()}</span>
-                        <Button size="sm" className="min-h-[44px]" onClick={() => {
-                          addItem({ productId: String(product.id), name: product.name, price: product.price, quantity: 1, imageUrl: product.image });
+                        <Button size="sm" className="min-h-[44px]" onClick={(e) => {
+                          e.stopPropagation();
+                          addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, imageUrl: product.images[0] });
                           toast.success(`${product.name} added to cart`);
                         }}>
                           <ShoppingCart className="h-4 w-4 mr-1" /> Add to Cart

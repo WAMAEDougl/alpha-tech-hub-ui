@@ -22,8 +22,14 @@ function useHashNav() {
     if (location.pathname === "/") {
       const el = document.querySelector(hash);
       if (el) el.scrollIntoView({ behavior: "smooth" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       navigate("/" + hash);
+      // After navigation, scroll to section
+      setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 300);
     }
   };
 }
@@ -66,7 +72,7 @@ const Header = () => {
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1">
-          <Link to="/" className="px-3 py-2 text-sm font-medium hover:text-primary transition-colors">Home</Link>
+          <Link to="/" className="px-3 py-2 text-sm font-medium hover:text-primary transition-colors" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>Home</Link>
 
           {/* Shop dropdown */}
           <div className="relative" onMouseEnter={() => setShopOpen(true)} onMouseLeave={() => setShopOpen(false)}>
@@ -145,7 +151,7 @@ const Header = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search products..." className="pl-9" />
             </div>
-            <Link to="/" className="py-2 text-sm font-medium" onClick={() => setMobileOpen(false)}>Home</Link>
+            <Link to="/" className="py-2 text-sm font-medium" onClick={() => { setMobileOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Home</Link>
             <button className="py-2 text-sm font-medium text-left" onClick={() => { scrollTo("#catalog"); setMobileOpen(false); }}>Shop</button>
             <button className="py-2 text-sm font-medium text-left" onClick={() => { scrollTo("#services"); setMobileOpen(false); }}>Services</button>
             <button className="py-2 text-sm font-medium text-left" onClick={() => { scrollTo("#about"); setMobileOpen(false); }}>About Us</button>

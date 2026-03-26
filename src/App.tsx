@@ -15,6 +15,7 @@ import SiteSettingsPage from "./components/admin/SiteSettingsPage.tsx";
 import ReportsPage from "./components/admin/ReportsPage.tsx";
 import CartPage from "./pages/CartPage.tsx";
 import CheckoutPage from "./pages/CheckoutPage.tsx";
+import ProductDetailPage from "./pages/ProductDetailPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<DashboardOverview />} />
             <Route path="products" element={<ProductManagement />} />
