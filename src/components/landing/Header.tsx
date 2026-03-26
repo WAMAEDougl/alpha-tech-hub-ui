@@ -203,8 +203,17 @@ const Header = () => {
             </AnimatePresence>
           </motion.div>
 
-          {/* About Us */}
+          {/* Custom Builds */}
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}>
+            <button onClick={() => scrollTo("#custom-builds")} className="relative px-3 py-2 text-sm font-medium group">
+              <span className="relative z-10 group-hover:text-primary transition-colors duration-200">Custom Builds</span>
+              <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-primary group-hover:w-4/5 transition-all duration-300 rounded-full" />
+            </button>
+          </motion.div>
+
+          {/* About Us */}
+          <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
             <button onClick={() => scrollTo("#about")} className="relative px-3 py-2 text-sm font-medium group">
               <span className="relative z-10 group-hover:text-primary transition-colors duration-200">About Us</span>
               <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
@@ -213,7 +222,7 @@ const Header = () => {
           </motion.div>
 
           {/* Contact */}
-          <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
+          <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.45 }}>
             <button onClick={() => scrollTo("#contact")} className="relative px-3 py-2 text-sm font-medium group">
               <span className="relative z-10 group-hover:text-primary transition-colors duration-200">Contact</span>
               <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
@@ -317,6 +326,7 @@ const Header = () => {
                 { label: "Home", action: () => { setMobileOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); } },
                 { label: "Shop", action: () => { setMobileOpen(false); scrollTo("#catalog"); } },
                 { label: "Services", action: () => { setMobileOpen(false); scrollTo("#services"); } },
+                { label: "Custom Builds", action: () => { setMobileOpen(false); scrollTo("#custom-builds"); } },
                 { label: "About Us", action: () => { setMobileOpen(false); scrollTo("#about"); } },
                 { label: "Contact", action: () => { setMobileOpen(false); scrollTo("#contact"); } },
               ].map((item, i) => (

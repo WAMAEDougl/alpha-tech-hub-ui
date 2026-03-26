@@ -3,6 +3,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import CatalogSection from "@/components/landing/CatalogSection";
 import ServicesSection from "@/components/landing/ServicesSection";
 import AboutSection from "@/components/landing/AboutSection";
+import CustomBuildsSection from "@/components/landing/CustomBuildsSection";
 import Footer from "@/components/landing/Footer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 
@@ -14,6 +15,7 @@ const Index = () => {
         <HeroSection />
         <CatalogSection />
         <ServicesSection />
+        <CustomBuildsSection />
         <AboutSection />
       </main>
       <Footer />
