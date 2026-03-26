@@ -1,106 +1,267 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Upload } from "lucide-react";
-import logoRed from "@/assets/logo-red.png";
-import logoBlack from "@/assets/logo-black.png";
+import { ArrowLeft, Plus, X, ImagePlus } from "lucide-react";
+import { useServices, ServiceBooking } from "@/contexts/ServicesContext";
+import { toast } from "sonner";
 
-const ticketData: Record<string, {
-  id: string; customer: string; phone: string; device: string; service: string;
-  status: string; date: string; tech: string; notes: string; parts: string[];
-}> = {
-  "RPR-001": { id: "RPR-001", customer: "James Kamau", phone: "+254 712 345 678", device: "HP Pavilion 15", service: "Screen Replacement", status: "Awaiting Parts", date: "2026-03-22", tech: "Evans", notes: "Screen cracked on top-left. Ordered 15.6\" FHD IPS panel. ETA 3 days.", parts: ["15.6\" FHD IPS LCD Panel", "Screen adhesive strips"] },
-  "RPR-002": { id: "RPR-002", customer: "Grace Muthoni", phone: "+254 723 456 789", device: "Dell Inspiron 14", service: "Hardware Diagnostic", status: "Diagnostic", date: "2026-03-23", tech: "Brian", notes: "Customer reports random shutdowns. Running thermal and stress tests.", parts: [] },
-  "RPR-003": { id: "RPR-003", customer: "Samuel Njoroge", phone: "+254 734 567 890", device: "Lenovo IdeaPad", service: "OS Installation", status: "Repaired", date: "2026-03-20", tech: "Evans", notes: "Fresh Windows 11 install. Drivers installed. Activated.", parts: ["Windows 11 Pro license"] },
-  "RPR-004": { id: "RPR-004", customer: "Mary Akinyi", phone: "+254 745 678 901", device: "MacBook Air M2", service: "Data Recovery", status: "Ready for Pickup", date: "2026-03-18", tech: "Brian", notes: "Recovered 95% of files from failing SSD. Data backed up to external.", parts: ["External 1TB HDD"] },
-  "RPR-005": { id: "RPR-005", customer: "Tom Ochieng", phone: "+254 756 789 012", device: "ASUS VivoBook", service: "Virus Removal", status: "Diagnostic", date: "2026-03-24", tech: "Evans", notes: "Multiple adware infections detected. Full scan in progress.", parts: [] },
+const STATUSES: ServiceBooking["status"][] = [
+  "Received", "Diagnostic", "Awaiting Parts", "In Repair", "Ready for Pickup", "Completed",
+];
+
+const STATUS_VARIANT: Record<ServiceBooking["status"], "default" | "secondary" | "outline" | "destructive"> = {
+  Received: "secondary",
+  Diagnostic: "outline",
+  "Awaiting Parts": "secondary",
+  "In Repair": "outline",
+  "Ready for Pickup": "default",
+  Completed: "default",
 };
 
 const RepairTicketView = () => {
-  const { ticketId } = useParams();
-  const ticket = ticketData[ticketId || "RPR-001"] || ticketData["RPR-001"];
+  const { ticketId } = useParams<{ ticketId: string }>();
+  const { bookings, updateBooking } = useServices();
+
+  const booking = bookings.find(b => b.id === ticketId);
+
+  // Local editable state
+  const [status, setStatus] = useState<ServiceBooking["status"]>(booking?.status ?? "Received");
+  const [technician, setTechnician] = useState(booking?.technician ?? "");
+  const [estimatedCost, setEstimatedCost] = useState(booking?.estimatedCost?.toString() ?? "");
+  const [notes, setNotes] = useState(booking?.notes ?? "");
+  const [parts, setParts] = useState<string[]>([]);
+  const [newPart, setNewPart] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
+
+  function handleSave() {
+    if (!booking) return;
+    updateBooking(booking.id, {
+      status,
+      technician,
+      estimatedCost: estimatedCost ? Number(estimatedCost) : null,
+      notes,
+    });
+    toast.success("Ticket updated successfully");
+  }
+
+  function addPart() {
+    if (!newPart.trim()) return;
+    setParts(prev => [...prev, newPart.trim()]);
+    setNewPart("");
+  }
+
+  function removePart(i: number) {
+    setParts(prev => prev.filter((_, idx) => idx !== i));
+  }
+
+  function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => setPhotos(prev => [...prev, reader.result as string]);
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
+  }
+
+  // Not found state
+  if (!booking) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/admin/repairs"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Repairs</Link>
+        </Button>
+        <div className="text-center py-20">
+          <p className="text-2xl font-bold mb-2">Ticket Not Found</p>
+          <p className="text-muted-foreground mb-4">
+            No ticket with ID <span className="font-mono text-primary">{ticketId}</span> exists.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Tickets are created when customers book a service on the website.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/admin/repairs">View All Repairs</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      {/* Header */}
+      <div className="flex flex-wrap items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/admin/repairs"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
         </Button>
-        <h1 className="text-2xl font-heading font-bold">Repair Ticket: {ticket.id}</h1>
-        <Badge variant="secondary" className="ml-auto">{ticket.status}</Badge>
+        <h1 className="text-2xl font-heading font-bold">Ticket: {booking.id}</h1>
+        <Badge variant={STATUS_VARIANT[status]} className="ml-auto">{status}</Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left — main info */}
         <div className="lg:col-span-2 space-y-6">
+
+          {/* Customer & Device */}
           <Card>
-            <CardHeader><CardTitle>Customer Information</CardTitle></CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="text-muted-foreground">Name:</span><p className="font-medium">{ticket.customer}</p></div>
-              <div><span className="text-muted-foreground">Phone:</span><p className="font-medium">{ticket.phone}</p></div>
-              <div><span className="text-muted-foreground">Device:</span><p className="font-medium">{ticket.device}</p></div>
-              <div><span className="text-muted-foreground">Service:</span><p className="font-medium">{ticket.service}</p></div>
-              <div><span className="text-muted-foreground">Date Received:</span><p className="font-medium">{ticket.date}</p></div>
-              <div><span className="text-muted-foreground">Technician:</span><p className="font-medium">{ticket.tech}</p></div>
+            <CardHeader><CardTitle>Customer & Device</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <div><p className="text-muted-foreground text-xs mb-0.5">Customer Name</p><p className="font-medium">{booking.customerName}</p></div>
+              <div><p className="text-muted-foreground text-xs mb-0.5">Phone</p><p className="font-medium">{booking.phone}</p></div>
+              {booking.email && <div><p className="text-muted-foreground text-xs mb-0.5">Email</p><p className="font-medium">{booking.email}</p></div>}
+              <div><p className="text-muted-foreground text-xs mb-0.5">Device</p><p className="font-medium">{booking.deviceBrand} {booking.deviceModel}</p></div>
+              <div><p className="text-muted-foreground text-xs mb-0.5">Service</p><p className="font-medium">{booking.serviceTitle}</p></div>
+              <div><p className="text-muted-foreground text-xs mb-0.5">Submitted</p><p className="font-medium">{booking.submittedAt}</p></div>
+              <div className="sm:col-span-2">
+                <p className="text-muted-foreground text-xs mb-0.5">Problem Description</p>
+                <p className="font-medium">{booking.problemDesc}</p>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Technician Notes */}
           <Card>
             <CardHeader><CardTitle>Technician Notes</CardTitle></CardHeader>
-            <CardContent>
-              <Textarea defaultValue={ticket.notes} rows={4} />
-              <Button className="mt-3" size="sm">Save Notes</Button>
+            <CardContent className="space-y-3">
+              <Textarea
+                rows={4}
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Add notes visible to the customer when they track their ticket..."
+              />
             </CardContent>
           </Card>
 
+          {/* Parts Used */}
           <Card>
             <CardHeader><CardTitle>Parts Used</CardTitle></CardHeader>
-            <CardContent>
-              {ticket.parts.length > 0 ? (
-                <ul className="space-y-1">
-                  {ticket.parts.map((part, i) => (
-                    <li key={i} className="text-sm flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                      {part}
+            <CardContent className="space-y-3">
+              {parts.length > 0 && (
+                <ul className="space-y-1.5 mb-3">
+                  {parts.map((part, i) => (
+                    <li key={i} className="flex items-center justify-between text-sm bg-muted/50 rounded-md px-3 py-1.5">
+                      <span className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                        {part}
+                      </span>
+                      <button onClick={() => removePart(i)} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">No parts recorded yet.</p>
               )}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a part (e.g. 15.6\" FHD IPS screen)"
+                  value={newPart}
+                  onChange={e => setNewPart(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && addPart()}
+                  className="flex-1"
+                />
+                <Button variant="outline" size="icon" onClick={addPart}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Repair Photos */}
+          <Card>
+            <CardHeader><CardTitle>Repair Photos</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {photos.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {photos.map((src, i) => (
+                    <div key={i} className="relative group">
+                      <img src={src} alt={`repair-${i}`} className="w-full aspect-square object-cover rounded-lg border" />
+                      <button
+                        onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Upload repair photos</span>
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
+              </label>
             </CardContent>
           </Card>
         </div>
 
+        {/* Right — actions */}
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Update Status</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Select defaultValue={ticket.status}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Diagnostic">Diagnostic</SelectItem>
-                  <SelectItem value="Awaiting Parts">Awaiting Parts</SelectItem>
-                  <SelectItem value="Repaired">Repaired</SelectItem>
-                  <SelectItem value="Ready for Pickup">Ready for Pickup</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button className="w-full">Update Status</Button>
+            <CardHeader><CardTitle>Update Ticket</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={v => setStatus(v as ServiceBooking["status"])}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Assigned Technician</Label>
+                <Input
+                  placeholder="Technician name"
+                  value={technician}
+                  onChange={e => setTechnician(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Estimated Cost (KES)</Label>
+                <Input
+                  type="number"
+                  placeholder="e.g. 5000"
+                  value={estimatedCost}
+                  onChange={e => setEstimatedCost(e.target.value)}
+                />
+              </div>
+
+              <Button className="w-full" onClick={handleSave}>
+                Save Changes
+              </Button>
             </CardContent>
           </Card>
 
+          {/* Summary card */}
           <Card>
-            <CardHeader><CardTitle>Repair Photos</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <img src={logoRed} alt="Repair" className="rounded-md border bg-card p-2 aspect-square object-contain" />
-                <img src={logoBlack} alt="Repair" className="rounded-md border bg-card p-2 aspect-square object-contain" />
+            <CardHeader><CardTitle>Ticket Summary</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Ticket ID</span>
+                <span className="font-mono font-bold text-primary">{booking.id}</span>
               </div>
-              <Button variant="outline" className="w-full" size="sm">
-                <Upload className="h-4 w-4 mr-2" /> Upload Photo
-              </Button>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Service</span>
+                <span className="font-medium">{booking.serviceTitle}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Parts Used</span>
+                <span className="font-medium">{parts.length}</span>
+              </div>
+              {estimatedCost && (
+                <div className="flex justify-between border-t pt-2 mt-2">
+                  <span className="text-muted-foreground">Estimated Cost</span>
+                  <span className="font-bold text-primary">KES {Number(estimatedCost).toLocaleString()}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
