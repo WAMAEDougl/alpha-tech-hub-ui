@@ -100,10 +100,19 @@ const HeroSection = () => {
           </motion.p>
 
           <motion.div {...fadeUp(0.6)} className="flex flex-wrap gap-3 md:gap-4">
-            <Button size="lg" className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px]">
+            <Button
+              size="lg"
+              className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px]"
+              onClick={() => document.querySelector("#catalog")?.scrollIntoView({ behavior: "smooth" })}
+            >
               SHOP NOW
             </Button>
-            <Button size="lg" variant="outline" className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px] border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 bg-transparent">
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px] border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+              onClick={() => document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" })}
+            >
               BOOK A REPAIR
             </Button>
           </motion.div>
