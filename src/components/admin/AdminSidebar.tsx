@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Package, ShoppingBag, Wrench, FileText, ChevronLeft, LogOut
+  LayoutDashboard, Package, ShoppingBag, Wrench, FileText, ChevronLeft, LogOut, Settings, BarChart2
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSiteConfig } from "@/contexts/SiteConfigContext";
+import { useTheme } from "next-themes";
 import logoRed from "@/assets/logo-red.png";
 
 const navItems = [
@@ -11,19 +14,34 @@ const navItems = [
   { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
   { icon: Wrench, label: "Repairs", path: "/admin/repairs" },
   { icon: FileText, label: "Tickets", path: "/admin/tickets" },
+  { icon: BarChart2, label: "Reports", path: "/admin/reports" },
+  { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];
+
+const PLACEHOLDER_LOGOS = ["/logo-light.png", "/logo-dark.png"];
+
+function isDefaultLogo(src: string) {
+  return !src || PLACEHOLDER_LOGOS.includes(src);
+}
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { config } = useSiteConfig();
+  const { resolvedTheme } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
+  const configLogo = isDark ? config.logoDark : config.logoLight;
+  const logoSrc = isDefaultLogo(configLogo) ? logoRed : configLogo;
+  const companyName = config.companyName;
 
   return (
-    <aside className={`${collapsed ? 'w-16' : 'w-60'} bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-200 shrink-0`}>
+    <aside className={`${collapsed ? 'w-16' : 'w-60'} bg-sidebar border-r border-sidebar-border hidden md:flex flex-col transition-all duration-200 shrink-0`}>
       <div className="h-16 flex items-center justify-between px-3 border-b border-sidebar-border">
         {!collapsed && (
           <Link to="/admin" className="flex items-center gap-2">
-            <img src={logoRed} alt="Logo" className="h-8" />
-            <span className="font-heading font-bold text-sidebar-foreground text-sm">ADMIN</span>
+            <img src={logoSrc} alt={companyName} className="h-8" />
+            <span className="font-heading font-bold text-sidebar-foreground text-sm">{companyName}</span>
           </Link>
         )}
         <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground">
@@ -49,7 +67,10 @@ const AdminSidebar = () => {
           );
         })}
       </nav>
-      <div className="px-2 pb-4">
+      <div className="px-2 pb-4 space-y-1">
+        <div className={`flex ${collapsed ? 'justify-center' : 'justify-start'} px-3 py-1`}>
+          <ThemeToggle />
+        </div>
         <Link
           to="/"
           className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"

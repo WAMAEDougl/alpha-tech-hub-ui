@@ -11,6 +11,10 @@ import ProductManagement from "./components/admin/ProductManagement.tsx";
 import OrderManagement from "./components/admin/OrderManagement.tsx";
 import RepairManagement from "./components/admin/RepairManagement.tsx";
 import RepairTicketView from "./components/admin/RepairTicketView.tsx";
+import SiteSettingsPage from "./components/admin/SiteSettingsPage.tsx";
+import ReportsPage from "./components/admin/ReportsPage.tsx";
+import CartPage from "./pages/CartPage.tsx";
+import CheckoutPage from "./pages/CheckoutPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -22,12 +26,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<DashboardOverview />} />
             <Route path="products" element={<ProductManagement />} />
             <Route path="orders" element={<OrderManagement />} />
             <Route path="repairs" element={<RepairManagement />} />
             <Route path="tickets/:ticketId" element={<RepairTicketView />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="settings" element={<SiteSettingsPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

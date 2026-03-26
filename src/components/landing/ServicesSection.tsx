@@ -37,7 +37,7 @@ const ServicesSection = () => {
                   <h3 className="font-heading font-semibold text-xl mb-2">{service.title}</h3>
                   <p className="text-muted-foreground text-sm mb-3 flex-1">{service.desc}</p>
                   <p className="text-primary font-semibold mb-4">{service.price}</p>
-                  <Button className="w-full">BOOK THIS SERVICE</Button>
+                  <Button className="w-full min-h-[44px]">BOOK THIS SERVICE</Button>
                 </CardContent>
               </Card>
             </motion.div>
@@ -48,9 +48,9 @@ const ServicesSection = () => {
         <Card className="max-w-xl mx-auto">
           <CardContent className="p-6">
             <h3 className="font-heading font-semibold text-xl mb-4 text-center">Track Your Repair</h3>
-            <div className="flex gap-2">
-              <Input placeholder="Enter your repair ticket number" className="flex-1" />
-              <Button><Search className="h-4 w-4 mr-2" /> Track</Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input placeholder="Enter your repair ticket number" className="flex-1 min-h-[44px]" />
+              <Button className="min-h-[44px]"><Search className="h-4 w-4 mr-2" /> Track</Button>
             </div>
           </CardContent>
         </Card>

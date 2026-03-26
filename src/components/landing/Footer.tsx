@@ -3,8 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import logoRed from "@/assets/logo-red.png";
+import { useSiteConfig } from "@/contexts/SiteConfigContext";
 
 const Footer = () => {
+  const { config } = useSiteConfig();
+  const mapsUrl = `https://www.google.com/maps?q=${config.mapLat},${config.mapLng}`;
+
   return (
     <footer id="contact" className="bg-accent text-accent-foreground pt-16 pb-8">
       <div className="container mx-auto px-4">
@@ -50,7 +54,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary shrink-0" />
-                +254 700 000 000
+                {config.phone}
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary shrink-0" />
@@ -73,19 +77,21 @@ const Footer = () => {
 
         {/* Map */}
         <div className="rounded-lg overflow-hidden mb-8 h-48">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15959.42!2d37.07!3d0.01!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17881a1a1a1a1a1a%3A0x1a1a1a1a1a1a1a1a!2sNanyuki%2C%20Kenya!5e0!3m2!1sen!2ske!4v1"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            title="Alpha Computers Nanyuki Location"
-          />
+          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+            <iframe
+              src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15959.42!2d${config.mapLng}!3d${config.mapLat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17881a1a1a1a1a1a%3A0x1a1a1a1a1a1a1a1a!2sNanyuki%2C%20Kenya!5e0!3m2!1sen!2ske!4v1`}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              title={`${config.companyName} Location`}
+            />
+          </a>
         </div>
 
         <div className="border-t border-accent-foreground/10 pt-6 text-center text-sm text-accent-foreground/50">
-          © {new Date().getFullYear()} Alpha Computers Nanyuki. All rights reserved.
+          © {new Date().getFullYear()} {config.companyName}. All rights reserved.
         </div>
       </div>
     </footer>

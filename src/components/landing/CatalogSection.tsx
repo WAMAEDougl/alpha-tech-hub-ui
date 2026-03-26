@@ -6,6 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { useCart } from "@/contexts/CartContext";
 
 const products = [
   { id: 1, name: "ASUS ROG Strix G16", price: 185000, rating: 5, category: "Laptops", brand: "ASUS", condition: "New", image: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=300&fit=crop", summary: "16\" Gaming Laptop, Intel i9, RTX 4070, 32GB RAM" },
@@ -23,6 +25,7 @@ const CatalogSection = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState([0]);
   const [showFilters, setShowFilters] = useState(false);
+  const { addItem } = useCart();
 
   const filtered = products.filter(p =>
     (selectedCategory === "All" || p.category === selectedCategory) &&
@@ -35,9 +38,9 @@ const CatalogSection = () => {
         <h2 className="text-3xl md:text-4xl font-heading font-bold text-center mb-2">Shop Our Products</h2>
         <p className="text-muted-foreground text-center mb-10">Premium hardware at competitive prices</p>
 
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar Filters */}
-          <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-64 shrink-0`}>
+          <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 shrink-0`}>
             <Card>
               <CardContent className="p-5 space-y-6">
                 <div>
@@ -47,7 +50,7 @@ const CatalogSection = () => {
                       <button
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
-                        className={`block w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${selectedCategory === cat ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                        className={`block w-full text-left px-3 py-2 rounded-md text-sm transition-colors min-h-[44px] ${selectedCategory === cat ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
                       >
                         {cat}
                       </button>
@@ -102,7 +105,7 @@ const CatalogSection = () => {
 
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6 lg:hidden">
-              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="min-h-[44px] px-4">
                 <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
               </Button>
             </div>
@@ -139,7 +142,10 @@ const CatalogSection = () => {
                       <p className="text-muted-foreground text-sm mb-3">{product.summary}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-xl font-bold text-primary">KES {product.price.toLocaleString()}</span>
-                        <Button size="sm">
+                        <Button size="sm" className="min-h-[44px]" onClick={() => {
+                          addItem({ productId: String(product.id), name: product.name, price: product.price, quantity: 1, imageUrl: product.image });
+                          toast.success(`${product.name} added to cart`);
+                        }}>
                           <ShoppingCart className="h-4 w-4 mr-1" /> Add to Cart
                         </Button>
                       </div>
