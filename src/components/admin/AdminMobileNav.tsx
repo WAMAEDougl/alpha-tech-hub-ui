@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, LayoutDashboard, Package, ShoppingBag, Wrench, FileText, Settings, LogOut, BarChart2, Cpu, Recycle } from "lucide-react";
+import { Menu, LayoutDashboard, Package, ShoppingBag, Wrench, Settings, LogOut, BarChart2, Cpu, Recycle } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -19,7 +19,6 @@ const navItems = [
   { icon: Package, label: "Products", path: "/admin/products" },
   { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
   { icon: Wrench, label: "Repairs", path: "/admin/repairs" },
-  { icon: FileText, label: "Tickets", path: "/admin/tickets" },
   { icon: Cpu, label: "Custom Builds", path: "/admin/custom-builds" },
   { icon: Recycle, label: "Disposal", path: "/admin/disposal" },
   { icon: BarChart2, label: "Reports", path: "/admin/reports" },

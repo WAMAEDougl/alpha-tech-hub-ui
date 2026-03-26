@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Pencil, Trash2, Check, X, ToggleLeft, ToggleRight } from "lucide-react";
+import { Search, Pencil, Trash2, Check, X, ToggleLeft, ToggleRight, Eye } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Link } from "react-router-dom";
 import { useServices, ServiceBooking } from "@/contexts/ServicesContext";
 import { toast } from "sonner";
 
@@ -117,6 +118,9 @@ const RepairManagement = () => {
                             <Badge variant={STATUS_VARIANT[b.status]}>{b.status}</Badge>
                           </TableCell>
                           <TableCell className="text-right space-x-1">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link to={`/admin/tickets/${b.id}`}><Eye className="h-3.5 w-3.5" /></Link>
+                            </Button>
                             <Button variant="ghost" size="sm" onClick={() => setEditingBooking({ ...b })}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
