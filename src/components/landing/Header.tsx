@@ -302,11 +302,11 @@ const Header = () => {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="lg:hidden border-t bg-card overflow-hidden"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="lg:hidden border-t bg-card"
           >
             <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
               <div className="relative mb-3">
@@ -315,10 +315,10 @@ const Header = () => {
               </div>
               {[
                 { label: "Home", action: () => { setMobileOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); } },
-                { label: "Shop", action: () => { scrollTo("#catalog"); setMobileOpen(false); } },
-                { label: "Services", action: () => { scrollTo("#services"); setMobileOpen(false); } },
-                { label: "About Us", action: () => { scrollTo("#about"); setMobileOpen(false); } },
-                { label: "Contact", action: () => { scrollTo("#contact"); setMobileOpen(false); } },
+                { label: "Shop", action: () => { setMobileOpen(false); scrollTo("#catalog"); } },
+                { label: "Services", action: () => { setMobileOpen(false); scrollTo("#services"); } },
+                { label: "About Us", action: () => { setMobileOpen(false); scrollTo("#about"); } },
+                { label: "Contact", action: () => { setMobileOpen(false); scrollTo("#contact"); } },
               ].map((item, i) => (
                 <motion.button
                   key={item.label}
@@ -326,13 +326,13 @@ const Header = () => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: i * 0.06 }}
                   onClick={item.action}
-                  className="py-2.5 px-3 text-sm font-medium text-left rounded-md hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="py-3 px-3 text-sm font-medium text-left rounded-md hover:bg-primary/10 hover:text-primary transition-colors min-h-[44px]"
                 >
                   {item.label}
                 </motion.button>
               ))}
               <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
-                <Button size="sm" className="mt-2 w-full" onClick={() => { scrollTo("#contact"); setMobileOpen(false); }}>
+                <Button size="sm" className="mt-2 w-full min-h-[44px]" onClick={() => { setMobileOpen(false); scrollTo("#contact"); }}>
                   Quick Quote
                 </Button>
               </motion.div>
