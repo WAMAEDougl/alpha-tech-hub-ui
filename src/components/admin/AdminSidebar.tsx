@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Package, ShoppingBag, Wrench, FileText, ChevronLeft, LogOut, Settings, BarChart2, Cpu
+  LayoutDashboard, Package, ShoppingBag, Wrench, FileText, ChevronLeft, LogOut, Settings, BarChart2, Cpu, Recycle
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
@@ -15,6 +15,7 @@ const navItems = [
   { icon: Wrench, label: "Repairs", path: "/admin/repairs" },
   { icon: FileText, label: "Tickets", path: "/admin/tickets" },
   { icon: Cpu, label: "Custom Builds", path: "/admin/custom-builds" },
+  { icon: Recycle, label: "Disposal", path: "/admin/disposal" },
   { icon: BarChart2, label: "Reports", path: "/admin/reports" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];

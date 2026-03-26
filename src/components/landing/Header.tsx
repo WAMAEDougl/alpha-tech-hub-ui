@@ -52,6 +52,7 @@ const serviceItems = [
   { label: "OS Installation", hash: "#services" },
   { label: "Data Recovery", hash: "#services" },
   { label: "Network Setup", hash: "#services" },
+  { label: "E-Waste Disposal", hash: "#disposal" },
 ];
 
 const Header = () => {

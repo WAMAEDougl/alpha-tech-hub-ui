@@ -3,6 +3,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import CatalogSection from "@/components/landing/CatalogSection";
 import ServicesSection from "@/components/landing/ServicesSection";
 import CustomBuildsSection from "@/components/landing/CustomBuildsSection";
+import DisposalSection from "@/components/landing/DisposalSection";
 import PCPartsSection from "@/components/landing/PCPartsSection";
 import LaptopPartsSection from "@/components/landing/LaptopPartsSection";
 import AboutSection from "@/components/landing/AboutSection";
@@ -20,6 +21,7 @@ const Index = () => {
         <LaptopPartsSection />
         <ServicesSection />
         <CustomBuildsSection />
+        <DisposalSection />
         <AboutSection />
       </main>
       <Footer />
