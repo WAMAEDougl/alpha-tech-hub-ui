@@ -36,11 +36,12 @@ const Footer = () => {
           <div>
             <h3 className="font-heading font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm text-accent-foreground/70">
-              <li><a href="#" className="hover:text-primary transition-colors">Shop Laptops</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Shop Desktops</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Accessories</a></li>
-              <li><a href="#services" className="hover:text-primary transition-colors">Repair Services</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Terms & Conditions</a></li>
+              <li><a href="/#catalog" className="hover:text-primary transition-colors">Shop Laptops</a></li>
+              <li><a href="/#catalog" className="hover:text-primary transition-colors">Shop Desktops</a></li>
+              <li><a href="/#catalog" className="hover:text-primary transition-colors">Accessories</a></li>
+              <li><a href="/#services" className="hover:text-primary transition-colors">Repair Services</a></li>
+              <li><a href="/#about" className="hover:text-primary transition-colors">About Us</a></li>
+              <li><a href="/#contact" className="hover:text-primary transition-colors">Contact Us</a></li>
             </ul>
           </div>
 

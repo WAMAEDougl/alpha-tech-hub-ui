@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const services = [
   { icon: Wrench, title: "Hardware Diagnostic", desc: "Full system diagnostics and troubleshooting for all brands", price: "From KES 1,500" },
@@ -14,6 +17,23 @@ const services = [
 ];
 
 const ServicesSection = () => {
+  const [ticketNumber, setTicketNumber] = useState("");
+  const navigate = useNavigate();
+
+  function handleBookService() {
+    const el = document.querySelector("#contact");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function handleTrackRepair() {
+    if (!ticketNumber.trim()) {
+      toast.error("Please enter a ticket number");
+      return;
+    }
+    // Navigate to admin ticket view
+    navigate(`/admin/tickets/${ticketNumber.trim()}`);
+  }
+
   return (
     <section id="services" className="py-16">
       <div className="container mx-auto px-4">
@@ -37,7 +57,7 @@ const ServicesSection = () => {
                   <h3 className="font-heading font-semibold text-xl mb-2">{service.title}</h3>
                   <p className="text-muted-foreground text-sm mb-3 flex-1">{service.desc}</p>
                   <p className="text-primary font-semibold mb-4">{service.price}</p>
-                  <Button className="w-full min-h-[44px]">BOOK THIS SERVICE</Button>
+                  <Button className="w-full min-h-[44px]" onClick={handleBookService}>BOOK THIS SERVICE</Button>
                 </CardContent>
               </Card>
             </motion.div>
@@ -49,8 +69,16 @@ const ServicesSection = () => {
           <CardContent className="p-6">
             <h3 className="font-heading font-semibold text-xl mb-4 text-center">Track Your Repair</h3>
             <div className="flex flex-col sm:flex-row gap-2">
-              <Input placeholder="Enter your repair ticket number" className="flex-1 min-h-[44px]" />
-              <Button className="min-h-[44px]"><Search className="h-4 w-4 mr-2" /> Track</Button>
+              <Input
+                placeholder="Enter your repair ticket number"
+                className="flex-1 min-h-[44px]"
+                value={ticketNumber}
+                onChange={(e) => setTicketNumber(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleTrackRepair()}
+              />
+              <Button className="min-h-[44px]" onClick={handleTrackRepair}>
+                <Search className="h-4 w-4 mr-2" /> Track
+              </Button>
             </div>
           </CardContent>
         </Card>
