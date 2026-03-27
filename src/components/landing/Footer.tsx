@@ -59,7 +59,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary shrink-0" />
-                info@alphacomputersnanyuki.co.ke
+                {config.email || "info@alphacomputersnanyuki.co.ke"}
               </li>
             </ul>
           </div>

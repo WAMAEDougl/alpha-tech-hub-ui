@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface SiteConfig {
   companyName: string;
+  email: string;
   logoLight: string;
   logoDark: string;
   mapLat: number;
@@ -12,6 +13,7 @@ export interface SiteConfig {
 
 const DEFAULT_CONFIG: SiteConfig = {
   companyName: "Alpha Computers Nanyuki",
+  email: "info@alphacomputersnanyuki.co.ke",
   logoLight: "/logo-light.png",
   logoDark: "/logo-dark.png",
   mapLat: -0.0167,
