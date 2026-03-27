@@ -10,60 +10,6 @@ const slides = [
   { url: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&h=800&fit=crop", alt: "Modern tech workspace" },
 ];
 
-// Split text into individual characters for per-letter 3D animation
-function Text3D({
-  text,
-  className,
-  delay = 0,
-  color = "text-accent-foreground",
-}: {
-  text: string;
-  className?: string;
-  delay?: number;
-  color?: string;
-}) {
-  return (
-    <div
-      className={`flex flex-wrap leading-tight ${className}`}
-      style={{ perspective: "600px" }}
-    >
-      {text.split("").map((char, i) => (
-        <motion.span
-          key={i}
-          className={`inline-block font-heading font-bold ${color} ${char === " " ? "mr-[0.25em]" : ""}`}
-          initial={{
-            opacity: 0,
-            rotateX: -90,
-            y: 40,
-            z: -80,
-          }}
-          animate={{
-            opacity: 1,
-            rotateX: 0,
-            y: 0,
-            z: 0,
-          }}
-          transition={{
-            duration: 0.55,
-            delay: delay + i * 0.04,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          whileHover={{
-            rotateY: 15,
-            rotateX: -10,
-            scale: 1.15,
-            z: 30,
-            transition: { duration: 0.2 },
-          }}
-          style={{ transformStyle: "preserve-3d", display: "inline-block" }}
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
-    </div>
-  );
-}
-
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 40 },
   animate: { opacity: 1, y: 0 },
@@ -113,34 +59,28 @@ const HeroSection = () => {
 
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10 py-12 md:py-20">
-        <div className="max-w-full md:max-w-3xl">
+        <div className="max-w-full md:max-w-2xl">
 
-          {/* 3D animated heading line 1 */}
-          <Text3D
-            text="ALPHA COMPUTERS NANYUKI:"
-            className="text-3xl md:text-5xl lg:text-6xl mb-1"
-            color="text-accent-foreground"
-            delay={0}
-          />
+          <motion.div {...fadeUp(0)}>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold text-accent-foreground leading-tight">
+              ALPHA COMPUTERS NANYUKI:
+            </h1>
+          </motion.div>
 
-          {/* 3D animated heading line 2 — red */}
-          <Text3D
-            text="YOUR TECH DESTINATION"
-            className="text-3xl md:text-5xl lg:text-6xl mb-5"
-            color="text-primary"
-            delay={0.3}
-          />
+          <motion.div {...fadeUp(0.2)}>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold text-primary leading-tight mb-4">
+              YOUR TECH DESTINATION
+            </h1>
+          </motion.div>
 
-          {/* Subtext */}
           <motion.p
-            {...fadeUp(0.9)}
+            {...fadeUp(0.4)}
             className="text-base md:text-lg text-accent-foreground/80 mb-6 md:mb-8 max-w-lg"
           >
             Shop the best, repair with the experts. Your trusted technology hub in Nanyuki, Kenya.
           </motion.p>
 
-          {/* Buttons */}
-          <motion.div {...fadeUp(1.1)} className="flex flex-wrap gap-3 md:gap-4">
+          <motion.div {...fadeUp(0.6)} className="flex flex-wrap gap-3 md:gap-4">
             <Button
               size="lg"
               className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px]"
