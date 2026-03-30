@@ -1,6 +1,9 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PaymentMethod } from '../order.entity';
+
+enum PaymentMethod {
+  MPESA = 'MPESA', CARD = 'CARD', PAY_ON_DELIVERY = 'PAY_ON_DELIVERY',
+}
 
 export class CreateOrderDto {
   @ApiProperty({ enum: PaymentMethod })
