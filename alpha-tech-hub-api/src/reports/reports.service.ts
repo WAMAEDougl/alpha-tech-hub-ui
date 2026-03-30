@@ -82,8 +82,8 @@ export class ReportsService {
 
     await this.addHeader(doc, 'Sales Report');
 
-    const revenue = await this.ordersService.getMonthlyRevenue();
-    const mostSold = await this.productsService.getMostSold(10);
+    const revenue = await this.ordersService.getMonthlyRevenue() as any[];
+    const mostSold = await this.productsService.getMostSold(10) as any[];
 
     doc.fontSize(11).font('Helvetica-Bold').text('Monthly Revenue', { underline: true });
     this.addTable(doc,
@@ -112,7 +112,7 @@ export class ReportsService {
 
     await this.addHeader(doc, 'Repairs Report');
 
-    const tickets = await this.repairsService.findAll();
+    const tickets = await this.repairsService.findAll() as any[];
     const avgHours = await this.repairsService.getAverageTurnaround();
     const activeCount = await this.repairsService.getActiveCount();
 
