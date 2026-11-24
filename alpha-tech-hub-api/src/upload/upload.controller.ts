@@ -2,7 +2,6 @@ import { Controller, Post, UploadedFile, UploadedFiles, UseInterceptors, UseGuar
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
 import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -13,7 +12,9 @@ import { UserRole } from '../users/user.entity';
 const storage = diskStorage({
   destination: './uploads',
   filename: (_req, file, cb) => {
-    cb(null, `${uuid()}${extname(file.originalname)}`);
+    // extension comes from the validated image type, never from the client's file name
+    const ext = ({ 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/gif': '.gif', 'image/webp': '.webp' } as Record<string, string>)[file.mimetype] || '.bin';
+    cb(null, `${uuid()}${ext}`);
   },
 });
 
@@ -28,12 +29,12 @@ const imageFilter = (_req: any, file: Express.Multer.File, cb: any) => {
 @ApiBearerAuth()
 @Controller('upload')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.INVENTORY)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('image')
-  @ApiOperation({ summary: 'Upload a single image (Admin)' })
+  @ApiOperation({ summary: 'Upload a single image (staff)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
   @UseInterceptors(FileInterceptor('file', { storage, fileFilter: imageFilter, limits: { fileSize: 5 * 1024 * 1024 } }))
@@ -43,7 +44,7 @@ export class UploadController {
   }
 
   @Post('images')
-  @ApiOperation({ summary: 'Upload multiple images (Admin, max 10)' })
+  @ApiOperation({ summary: 'Upload multiple images (staff, max 10)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: { type: 'object', properties: { files: { type: 'array', items: { type: 'string', format: 'binary' } } } } })
   @UseInterceptors(FilesInterceptor('files', 10, { storage, fileFilter: imageFilter, limits: { fileSize: 5 * 1024 * 1024 } }))

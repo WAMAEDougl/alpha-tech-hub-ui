@@ -1,40 +1,41 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Admin user
-  const adminPassword = await bcrypt.hash('admin123', 10);
+  // Staff accounts. Passwords come from the environment; if unset a random one is
+  // generated and printed ONCE. There are no default/known passwords.
+  const adminEmail = (process.env.SEED_ADMIN_EMAIL || 'admin@alphacomputers.co.ke').toLowerCase();
+  const adminPlain = process.env.SEED_ADMIN_PASSWORD || randomBytes(9).toString('base64url');
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@alphacomputers.co.ke' },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email: 'admin@alphacomputers.co.ke',
+      email: adminEmail,
       name: 'Alpha Admin',
-      password: adminPassword,
-      phone: '+254700000000',
+      password: await bcrypt.hash(adminPlain, 12),
       role: 'ADMIN',
     },
   });
-  console.log(`✅ Admin: ${admin.email}`);
+  console.log(`Admin: ${admin.email}`);
 
-  // Test customer
-  const customerPassword = await bcrypt.hash('customer123', 10);
-  const customer = await prisma.user.upsert({
-    where: { email: 'customer@test.com' },
+  const invEmail = (process.env.SEED_INVENTORY_EMAIL || 'inventory@alphacomputers.co.ke').toLowerCase();
+  const invPlain = process.env.SEED_INVENTORY_PASSWORD || randomBytes(9).toString('base64url');
+  const inventoryUser = await prisma.user.upsert({
+    where: { email: invEmail },
     update: {},
     create: {
-      email: 'customer@test.com',
-      name: 'Test Customer',
-      password: customerPassword,
-      phone: '+254711111111',
-      role: 'CUSTOMER',
+      email: invEmail,
+      name: 'Inventory Manager',
+      password: await bcrypt.hash(invPlain, 12),
+      role: 'INVENTORY',
     },
   });
-  console.log(`✅ Customer: ${customer.email}`);
+  console.log(`Inventory: ${inventoryUser.email}`);
 
   // Settings
   const settingsCount = await prisma.settings.count();
@@ -50,6 +51,15 @@ async function main() {
       },
     });
     console.log('✅ Settings seeded');
+  }
+
+  // Starter delivery zone. Edit the fee and areas in Admin > Delivery zones; an address that matches no zone
+  // is flagged so the office can agree a fee with the customer before approving.
+  if ((await prisma.deliveryZone.count()) === 0) {
+    await prisma.deliveryZone.create({
+      data: { name: 'Nanyuki Town', fee: 200, areas: ['nanyuki', 'nanyuki town', 'town'], estimatedDays: 'Same day', sortOrder: 0 },
+    });
+    console.log('Starter delivery zone created');
   }
 
   // Sample products
@@ -165,18 +175,20 @@ async function main() {
   ];
 
   for (const p of products) {
-    await prisma.product.upsert({
-      where: { sku: p.sku },
-      update: {},
-      create: { ...p, specs: p.specs as any },
+    const exists = await prisma.product.findUnique({ where: { sku: p.sku } });
+    if (exists) continue;
+    const { stock, ...rest } = p;
+    const created = await prisma.product.create({ data: { ...rest, stock, specs: rest.specs as any } });
+    // opening stock goes in the ledger so movements always reconcile with stock
+    await prisma.stockMovement.create({
+      data: { productId: created.id, type: 'RECEIVED', quantity: stock, stockBefore: 0, stockAfter: stock, reason: 'Opening stock', userId: admin.id },
     });
   }
   console.log(`✅ ${products.length} products seeded`);
 
   console.log('🎉 Seed complete!');
-  console.log('\nLogin credentials:');
-  console.log('  Admin:    admin@alphacomputers.co.ke / admin123');
-  console.log('  Customer: customer@test.com / customer123');
+  if (!process.env.SEED_ADMIN_PASSWORD) console.log(`\nGenerated admin password (shown once, change it): ${adminPlain}`);
+  if (!process.env.SEED_INVENTORY_PASSWORD) console.log(`Generated inventory password (shown once, change it): ${invPlain}`);
 }
 
 main()

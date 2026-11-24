@@ -15,10 +15,19 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { BuildRequestsModule } from './build-requests/build-requests.module';
 import { DisposalModule } from './disposal/disposal.module';
 import { QuotesModule } from './quotes/quotes.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ZonesModule } from './zones/zones.module';
+import { DiscountsModule } from './discounts/discounts.module';
+import { CustomersModule } from './customers/customers.module';
+import { ReturnsModule } from './returns/returns.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 300 }]),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -34,6 +43,13 @@ import { QuotesModule } from './quotes/quotes.module';
     BuildRequestsModule,
     DisposalModule,
     QuotesModule,
+    InventoryModule,
+    NotificationsModule,
+    ZonesModule,
+    DiscountsModule,
+    CustomersModule,
+    ReturnsModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -18,6 +18,7 @@ export class SettingsService implements OnModuleInit {
   }
 
   async update(dto: UpdateSettingsDto) {
-    return this.prisma.settings.update({ where: { id: 1 }, data: dto as any });
+    const row = (await this.prisma.settings.findFirst()) ?? (await this.prisma.settings.create({ data: {} }));
+    return this.prisma.settings.update({ where: { id: row.id }, data: dto as any });
   }
 }

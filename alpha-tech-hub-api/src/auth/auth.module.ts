@@ -13,10 +13,15 @@ import { UsersModule } from '../users/users.module';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get('JWT_SECRET'),
-        signOptions: { expiresIn: config.get('JWT_EXPIRES_IN', '7d') },
-      }),
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRET');
+        // Refuse to boot with a missing/placeholder secret: tokens signed with a
+        // guessable secret let anyone forge an admin login.
+        if (!secret || secret.length < 32 || secret.startsWith('your-super-secret')) {
+          throw new Error('JWT_SECRET must be set to a random string of at least 32 characters');
+        }
+        return { secret, signOptions: { expiresIn: config.get('JWT_EXPIRES_IN', '12h') } };
+      },
       inject: [ConfigService],
     }),
   ],

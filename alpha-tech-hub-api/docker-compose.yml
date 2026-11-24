@@ -1,0 +1,23 @@
+# Local development database. Run: docker compose up -d
+# Data lives in the named volume, so it survives restarts (docker compose down -v wipes it).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: alpha-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpass}
+      POSTGRES_DB: alpha_dev
+    ports:
+      - "127.0.0.1:5432:5432"   # bound to this machine only
+    volumes:
+      - alpha_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d alpha_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  alpha_pgdata:

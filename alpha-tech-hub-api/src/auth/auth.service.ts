@@ -5,6 +5,9 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 
+// Compared against when the email is unknown, so response time doesn't reveal which emails exist.
+const DUMMY_HASH = bcrypt.hashSync('timing-equalizer', 12);
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -14,22 +17,21 @@ export class AuthService {
 
   async register(dto: CreateUserDto) {
     const user = await this.usersService.create(dto);
-    return this.signToken(user.id, user.email, user.role);
+    return this.signToken(user.id, user.email, user.role, user.name);
   }
 
   async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
-    const valid = await bcrypt.compare(dto.password, user.password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
-    return this.signToken(user.id, user.email, user.role);
+    const valid = await bcrypt.compare(dto.password, user?.password ?? DUMMY_HASH);
+    if (!user || !valid || !user.isActive) throw new UnauthorizedException('Invalid email or password');
+    return this.signToken(user.id, user.email, user.role, user.name);
   }
 
-  private signToken(userId: string, email: string, role: string) {
+  private signToken(userId: string, email: string, role: string, name?: string) {
     const payload = { sub: userId, email, role };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: userId, email, role },
+      user: { id: userId, email, role, name },
     };
   }
 }
