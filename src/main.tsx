@@ -7,6 +7,7 @@ import { ProductsProvider } from "./contexts/ProductsContext.tsx";
 import { CustomBuildsProvider } from "./contexts/CustomBuildsContext.tsx";
 import { DisposalProvider } from "./contexts/DisposalContext.tsx";
 import { ServicesProvider } from "./contexts/ServicesContext.tsx";
+import { AuthProvider } from "./contexts/AuthContext.tsx";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -17,7 +18,9 @@ createRoot(document.getElementById("root")!).render(
           <DisposalProvider>
             <CartProvider>
               <ThemeProvider attribute="class" defaultTheme="system">
-                <App />
+                <AuthProvider>
+                  <App />
+                </AuthProvider>
               </ThemeProvider>
             </CartProvider>
           </DisposalProvider>

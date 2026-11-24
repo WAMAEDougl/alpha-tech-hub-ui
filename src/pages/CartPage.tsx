@@ -18,7 +18,7 @@ const CartPage = () => {
       <div className="min-h-screen">
         <Header />
         <main className="pt-16">
-          <div className="container mx-auto px-4 py-20 flex flex-col items-center gap-6 text-center">
+          <div className="container mx-auto px-6 lg:px-10 py-20 flex flex-col items-center gap-6 text-center">
             <ShoppingCart className="h-16 w-16 text-muted-foreground" />
             <h1 className="text-2xl font-bold">Your cart is empty</h1>
             <p className="text-muted-foreground">Looks like you haven't added anything yet.</p>
@@ -36,7 +36,7 @@ const CartPage = () => {
     <div className="min-h-screen">
       <Header />
       <main className="pt-16">
-        <div className="container mx-auto px-4 py-10">
+        <div className="container mx-auto px-6 lg:px-10 py-10">
           <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}

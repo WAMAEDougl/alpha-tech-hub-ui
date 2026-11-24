@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProducts, Product } from "@/contexts/ProductsContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 const CATEGORIES = ["Laptops", "Desktops", "Accessories", "Monitors", "PC Parts", "Laptop Parts"];
@@ -25,7 +27,10 @@ const emptyForm = (): FormState => ({
 });
 
 const ProductManagement = () => {
-  const { products, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { products, loading, error, refresh, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { user } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
@@ -49,16 +54,30 @@ const ProductManagement = () => {
     setOpen(true);
   }
 
-  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setForm(f => ({ ...f, images: [...f.images, reader.result as string] }));
-      };
-      reader.readAsDataURL(file);
-    });
     e.target.value = "";
+    if (!files.length) return;
+    if (files.some(f => f.size > 5 * 1024 * 1024)) {
+      toast.error("Each image must be under 5 MB");
+      return;
+    }
+    // Upload to the server and keep only the URL, instead of embedding the picture in the product record.
+    const fd = new FormData();
+    files.forEach(f => fd.append("files", f));
+    setUploading(true);
+    try {
+      const token = sessionStorage.getItem("alpha_admin_token");
+      const base = ((import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:3000").replace(/\/$/, "");
+      const res = await fetch(`${base}/upload/images`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.message || "Upload failed");
+      const urls: { url: string }[] = await res.json();
+      setForm(f => ({ ...f, images: [...f.images, ...urls.map(u => u.url)] }));
+    } catch (err) {
+      toast.error((err as Error)?.message || "Upload failed. Check your connection and try again.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   function removeImage(idx: number) {
@@ -80,35 +99,48 @@ const ProductManagement = () => {
     }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (saving) return;
     if (!form.name || !form.sku || !form.brand) {
       toast.error("Name, SKU and Brand are required");
       return;
     }
-    const stockNum = Number(form.stock);
-    const status = stockNum === 0 ? "Out of Stock" : stockNum <= 3 ? "Low Stock" : "In Stock";
+    if (!(Number(form.price) > 0)) {
+      toast.error("Enter a price greater than zero");
+      return;
+    }
     const payload = {
       ...form,
       price: Number(form.price),
-      stock: stockNum,
+      stock: Math.max(0, Math.floor(Number(form.stock) || 0)),
       rating: Number(form.rating),
       specs: form.specs.filter(s => s.label && s.value),
     };
-    if (isEdit && form.id) {
-      updateProduct({ ...payload, id: form.id } as Product);
-      toast.success("Product updated");
-    } else {
-      addProduct(payload as Omit<Product, "id">);
-      toast.success("Product added");
+    setSaving(true);
+    try {
+      if (isEdit && form.id) {
+        await updateProduct({ ...payload, id: form.id } as Product);
+        toast.success("Product updated");
+      } else {
+        await addProduct(payload as Omit<Product, "id">);
+        toast.success("Product added");
+      }
+      setOpen(false);
+    } catch (err) {
+      toast.error((err as Error)?.message || "Could not save the product");
+    } finally {
+      setSaving(false);
     }
-    setOpen(false);
   }
 
-  function handleDelete(id: string, name: string) {
-    if (confirm(`Delete "${name}"?`)) {
-      deleteProduct(id);
-      toast.success("Product deleted");
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`Remove "${name}" from the store? Past orders keep their record of it.`)) return;
+    try {
+      await deleteProduct(id);
+      toast.success("Product removed");
+    } catch (err) {
+      toast.error((err as Error)?.message || "Could not remove the product");
     }
   }
 
@@ -144,6 +176,18 @@ const ProductManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {loading && <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Loading products…</TableCell></TableRow>}
+              {!loading && error && (
+                <TableRow><TableCell colSpan={8} className="text-center py-8">
+                  <p className="text-sm text-destructive mb-2">{error}</p>
+                  <Button size="sm" variant="outline" onClick={() => refresh()}>Try again</Button>
+                </TableCell></TableRow>
+              )}
+              {!loading && !error && filtered.length === 0 && (
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  {products.length === 0 ? "No products yet. Click “Add Product” to create the first one." : "No products match your search."}
+                </TableCell></TableRow>
+              )}
               {filtered.map(p => (
                 <TableRow key={p.id}>
                   <TableCell>
@@ -164,7 +208,9 @@ const ProductManagement = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(p)}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id, p.name)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    {user?.role === "ADMIN" && (
+                      <Button variant="ghost" size="sm" aria-label={`Remove ${p.name}`} onClick={() => handleDelete(p.id, p.name)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -206,8 +252,8 @@ const ProductManagement = () => {
                 <Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: Number(e.target.value) }))} />
               </div>
               <div className="space-y-1.5">
-                <Label>Stock</Label>
-                <Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: Number(e.target.value) }))} />
+                <Label>{isEdit ? "Stock (change it in Inventory)" : "Opening stock"}</Label>
+                <Input type="number" min={0} value={form.stock} disabled={isEdit} onChange={e => setForm(f => ({ ...f, stock: Number(e.target.value) }))} />
               </div>
               <div className="space-y-1.5">
                 <Label>Condition</Label>
@@ -282,7 +328,7 @@ const ProductManagement = () => {
 
             <div className="flex gap-3 pt-2">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" className="flex-1">{isEdit ? "Save Changes" : "Add Product"}</Button>
+              <Button type="submit" className="flex-1" disabled={saving || uploading}>{saving ? "Saving…" : uploading ? "Uploading images…" : isEdit ? "Save Changes" : "Add Product"}</Button>
             </div>
           </form>
         </DialogContent>

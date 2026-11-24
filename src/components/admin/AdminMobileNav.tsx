@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, LayoutDashboard, Package, ShoppingBag, Wrench, Settings, LogOut, BarChart2, Cpu, Recycle } from "lucide-react";
+import { Menu, LogOut, Store } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { navFor } from "@/components/admin/adminNav";
 import { useTheme } from "next-themes";
 import logoRed from "@/assets/logo-red.png";
 
@@ -14,22 +15,14 @@ function isDefaultLogo(src: string) {
   return !src || PLACEHOLDER_LOGOS.includes(src);
 }
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-  { icon: Package, label: "Products", path: "/admin/products" },
-  { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
-  { icon: Wrench, label: "Repairs", path: "/admin/repairs" },
-  { icon: Cpu, label: "Custom Builds", path: "/admin/custom-builds" },
-  { icon: Recycle, label: "Disposal", path: "/admin/disposal" },
-  { icon: BarChart2, label: "Reports", path: "/admin/reports" },
-  { icon: Settings, label: "Settings", path: "/admin/settings" },
-];
 
 const AdminMobileNav = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const { config } = useSiteConfig();
   const { resolvedTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navItems = navFor(user?.role);
 
   const isDark = resolvedTheme === "dark";
   const configLogo = isDark ? config.logoDark : config.logoLight;
@@ -72,17 +65,21 @@ const AdminMobileNav = () => {
             })}
           </nav>
           <div className="px-2 pb-4 space-y-1">
-            <div className="flex items-center px-3 py-1">
-              <ThemeToggle />
-            </div>
             <Link
               to="/"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
+              <Store className="h-4 w-4 shrink-0" />
               <span>Back to Store</span>
             </Link>
+            <button
+              onClick={() => { setOpen(false); logout(); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>Sign out</span>
+            </button>
           </div>
         </SheetContent>
       </Sheet>

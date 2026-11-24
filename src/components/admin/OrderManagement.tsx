@@ -1,68 +1,64 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import { useState } from "react";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import OrdersTable from "./OrdersTable";
 
-const orders = [
-  { id: "ORD-001", customer: "John Mwangi", items: 3, total: 198500, date: "2026-03-24", status: "Processing" },
-  { id: "ORD-002", customer: "Jane Wanjiru", items: 1, total: 185000, date: "2026-03-23", status: "Shipped" },
-  { id: "ORD-003", customer: "Peter Karanja", items: 2, total: 40500, date: "2026-03-22", status: "Delivered" },
-  { id: "ORD-004", customer: "Alice Njeri", items: 1, total: 145000, date: "2026-03-21", status: "Ordered" },
-  { id: "ORD-005", customer: "David Otieno", items: 4, total: 52000, date: "2026-03-20", status: "Processing" },
+interface Counts { [lane: string]: { count: number; oldest: string | null } }
+
+const OFFICE_TABS: { lane: string; label: string; empty: string }[] = [
+  { lane: "verify", label: "Verify payment", empty: "No M-Pesa codes are waiting to be checked." },
+  { lane: "review", label: "Ready to approve", empty: "No paid orders are waiting for office approval." },
+  { lane: "payment", label: "Awaiting payment", empty: "No orders are waiting for payment." },
+  { lane: "warehouse", label: "In the warehouse", empty: "Nothing is in the warehouse right now." },
+  { lane: "attention", label: "Needs attention", empty: "Nothing needs a decision. Nice." },
+  { lane: "closed", label: "Completed / cancelled", empty: "No closed orders yet." },
+  { lane: "", label: "All", empty: "No orders yet. They'll show up here the moment a customer checks out." },
 ];
-
-const statusColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  Ordered: "outline",
-  Processing: "secondary",
-  Shipped: "default",
-  Delivered: "default",
-};
+// inventory staff only see the warehouse side
+const INVENTORY_TABS = OFFICE_TABS.filter(t => ["warehouse", "closed", ""].includes(t.lane));
 
 const OrderManagement = () => {
+  const { user } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const tabs = user?.role === "ADMIN" ? OFFICE_TABS : INVENTORY_TABS;
+  const lane = params.get("lane") ?? tabs[0].lane;
   const [search, setSearch] = useState("");
-  const filtered = orders.filter(o => o.id.toLowerCase().includes(search.toLowerCase()) || o.customer.toLowerCase().includes(search.toLowerCase()));
+  const [debounced, setDebounced] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { data: counts } = useQuery({ queryKey: ["orders", "counts"], queryFn: () => api<Counts>("/orders/counts"), refetchInterval: 20_000 });
+  const current = tabs.find(t => t.lane === lane) ?? tabs[0];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-heading font-bold">Order Management</h1>
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search orders..." className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map(o => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                  <TableCell className="font-medium">{o.customer}</TableCell>
-                  <TableCell>{o.items}</TableCell>
-                  <TableCell>KES {o.total.toLocaleString()}</TableCell>
-                  <TableCell>{o.date}</TableCell>
-                  <TableCell><Badge variant={statusColor[o.status]}>{o.status}</Badge></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+    <div className="space-y-5">
+      <h1 className="text-2xl font-heading font-bold">Orders</h1>
+      <div className="flex flex-wrap items-center gap-2">
+        {tabs.map(t => {
+          const n = t.lane ? counts?.[t.lane]?.count : undefined;
+          const active = t.lane === lane;
+          const urgent = ["verify", "review", "attention"].includes(t.lane) && !!n;
+          return (
+            <button key={t.lane || "all"} onClick={() => setParams(t.lane === tabs[0].lane ? {} : { lane: t.lane })}
+              className={`text-sm px-3 py-1.5 rounded-full border transition-colors flex items-center gap-2 ${active ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`}>
+              {t.label}
+              {n ? <span className={`text-xs rounded-full px-1.5 ${active ? "bg-primary-foreground/20" : urgent ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-muted"}`}>{n}</span> : null}
+            </button>
+          );
+        })}
+        <div className="relative ml-auto w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Order no., customer or phone…" className="pl-9" value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+      </div>
+      <OrdersTable lane={current.lane || undefined} search={debounced} empty={current.empty} />
     </div>
   );
 };

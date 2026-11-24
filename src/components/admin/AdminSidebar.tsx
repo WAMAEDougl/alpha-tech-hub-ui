@@ -1,23 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard, Package, ShoppingBag, Wrench, ChevronLeft, LogOut, Settings, BarChart2, Cpu, Recycle
-} from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ChevronLeft, LogOut, Store } from "lucide-react";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { navFor, roleLabel } from "@/components/admin/adminNav";
 import { useTheme } from "next-themes";
 import logoRed from "@/assets/logo-red.png";
-
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-  { icon: Package, label: "Products", path: "/admin/products" },
-  { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
-  { icon: Wrench, label: "Repairs", path: "/admin/repairs" },
-  { icon: Cpu, label: "Custom Builds", path: "/admin/custom-builds" },
-  { icon: Recycle, label: "Disposal", path: "/admin/disposal" },
-  { icon: BarChart2, label: "Reports", path: "/admin/reports" },
-  { icon: Settings, label: "Settings", path: "/admin/settings" },
-];
 
 const PLACEHOLDER_LOGOS = ["/logo-light.png", "/logo-dark.png"];
 
@@ -30,6 +18,8 @@ const AdminSidebar = () => {
   const location = useLocation();
   const { config } = useSiteConfig();
   const { resolvedTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navItems = navFor(user?.role);
 
   const isDark = resolvedTheme === "dark";
   const configLogo = isDark ? config.logoDark : config.logoLight;
@@ -69,16 +59,26 @@ const AdminSidebar = () => {
         })}
       </nav>
       <div className="px-2 pb-4 space-y-1">
-        <div className={`flex ${collapsed ? 'justify-center' : 'justify-start'} px-3 py-1`}>
-          <ThemeToggle />
-        </div>
+        {user && !collapsed && (
+          <div className="px-3 py-2 text-xs text-sidebar-foreground/70 truncate">
+            <p className="font-medium text-sidebar-foreground truncate">{user.name}</p>
+            <p>{roleLabel[user.role]}</p>
+          </div>
+        )}
         <Link
           to="/"
           className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <Store className="h-4 w-4 shrink-0" />
           {!collapsed && <span>Back to Store</span>}
         </Link>
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>Sign out</span>}
+        </button>
       </div>
     </aside>
   );
