@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProducts, Product } from "@/contexts/ProductsContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { api } from "@/lib/api";
+import { api, API_BASE, tokenStore } from "@/lib/api";
 import { toast } from "sonner";
 
 const CATEGORIES = ["Laptops", "Desktops", "Accessories", "Monitors", "PC Parts", "Laptop Parts"];
@@ -67,9 +67,8 @@ const ProductManagement = () => {
     files.forEach(f => fd.append("files", f));
     setUploading(true);
     try {
-      const token = sessionStorage.getItem("alpha_admin_token");
-      const base = ((import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:3000").replace(/\/$/, "");
-      const res = await fetch(`${base}/upload/images`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+      const token = tokenStore.get();
+      const res = await fetch(`${API_BASE}/upload/images`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.message || "Upload failed");
       const urls: { url: string }[] = await res.json();
       setForm(f => ({ ...f, images: [...f.images, ...urls.map(u => u.url)] }));

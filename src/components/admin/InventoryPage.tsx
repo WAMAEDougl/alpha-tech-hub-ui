@@ -1,14 +1,10 @@
-import { Link, NavLink, Route, Routes, Navigate } from "react-router-dom";
+import { Link, NavLink } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api, money } from "@/lib/api";
 import OrdersTable from "./OrdersTable";
 import { MovementTable, type Movement } from "./inventory/MovementTable";
-import StockPage from "./inventory/StockPage";
-import { PurchaseOrdersPage, ReorderPage, SuppliersPage } from "./inventory/PurchasingPages";
-import StockTakesPage from "./inventory/StockTakesPage";
-import { GuidePage, InsightsPage } from "./inventory/InsightsAndGuide";
 
 interface Step { key: string; label: string; units?: number; orders?: number; hint: string; to?: string }
 interface Workflow {
@@ -35,7 +31,7 @@ const NAV = [
   { to: "/admin/inventory/guide", label: "How it works" },
 ];
 
-function Overview() {
+export function InventoryOverview() {
   const { data, isLoading, error } = useQuery({ queryKey: ["inventory", "workflow"], queryFn: () => api<Workflow>("/inventory/workflow"), refetchInterval: 30_000 });
   if (isLoading) return <Loader2 className="h-5 w-5 animate-spin mx-auto my-12 text-muted-foreground" />;
   if (error || !data) return <p className="text-sm text-destructive">{(error as Error)?.message ?? "Could not load the overview."}</p>;
@@ -105,14 +101,14 @@ function Overview() {
   );
 }
 
-const Lane = ({ title, intro, lane, empty }: { title: string; intro: string; lane: string; empty: string }) => (
+export const InventoryLane = ({ title, intro, lane, empty }: { title: string; intro: string; lane: string; empty: string }) => (
   <div className="space-y-4">
     <div><h2 className="text-lg font-heading font-semibold">{title}</h2><p className="text-sm text-muted-foreground">{intro}</p></div>
     <OrdersTable lane={lane} empty={empty} />
   </div>
 );
 
-const History = () => {
+export const InventoryHistory = () => {
   const { data, isLoading, error } = useQuery({ queryKey: ["inventory", "history"], queryFn: () => api<Movement[]>("/inventory/movements?limit=300") });
   return (
     <Card><CardContent className="p-0">
@@ -123,37 +119,23 @@ const History = () => {
   );
 };
 
-/** The inventory team's workspace: queues, stock, purchasing and counts, with its own navigation. */
-const InventoryPage = () => (
-  <div className="space-y-5">
-    <div>
-      <h1 className="text-2xl font-heading font-bold">Inventory</h1>
-      <p className="text-sm text-muted-foreground">Every stock change is recorded: who, when and why.</p>
+/** The inventory team's workspace: a shared heading and navigation; each tab is its own page. */
+export function InventoryShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl font-heading font-bold">Inventory</h1>
+        <p className="text-sm text-muted-foreground">Every stock change is recorded: who, when and why.</p>
+      </div>
+      <nav className="flex gap-1 overflow-x-auto border-b pb-px -mx-1 px-1">
+        {NAV.map(n => (
+          <NavLink key={n.to} to={n.to} end={n.end}
+            className={({ isActive }) => `shrink-0 px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${isActive ? "border-primary text-foreground font-medium" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            {n.label}
+          </NavLink>
+        ))}
+      </nav>
+      {children}
     </div>
-    <nav className="flex gap-1 overflow-x-auto border-b pb-px -mx-1 px-1">
-      {NAV.map(n => (
-        <NavLink key={n.to} to={n.to} end={n.end}
-          className={({ isActive }) => `shrink-0 px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${isActive ? "border-primary text-foreground font-medium" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-          {n.label}
-        </NavLink>
-      ))}
-    </nav>
-    <Routes>
-      <Route index element={<Overview />} />
-      <Route path="sourcing" element={<Lane title="Orders to source & pick" intro="Approved orders. Pick from the shelf, or receive from a supplier for any shortfall. Oldest first." lane="sourcing" empty="Nothing to source or pick. New work appears here once the office approves an order." />} />
-      <Route path="packing" element={<Lane title="Packing" intro="Everything picked: check each item into the box, then mark it packed." lane="packing" empty="Nothing is waiting to be packed." />} />
-      <Route path="handoffs" element={<Lane title="Handoffs" intro="Packed orders waiting for a rider or for the customer, and orders currently out." lane="handoffs" empty="Nothing is waiting for handoff." />} />
-      <Route path="stock" element={<StockPage />} />
-      <Route path="reorder" element={<ReorderPage />} />
-      <Route path="purchase-orders" element={<PurchaseOrdersPage />} />
-      <Route path="suppliers" element={<SuppliersPage />} />
-      <Route path="stock-takes" element={<StockTakesPage />} />
-      <Route path="history" element={<History />} />
-      <Route path="insights" element={<InsightsPage />} />
-      <Route path="guide" element={<GuidePage />} />
-      <Route path="*" element={<Navigate to="/admin/inventory" replace />} />
-    </Routes>
-  </div>
-);
-
-export default InventoryPage;
+  );
+}

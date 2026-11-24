@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Pencil, Trash2, Check, X, ToggleLeft, ToggleRight, Eye } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router";
 import { useServices, ServiceBooking } from "@/contexts/ServicesContext";
 import { toast } from "sonner";
 

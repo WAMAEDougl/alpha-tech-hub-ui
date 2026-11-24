@@ -1,160 +1,47 @@
-# Alpha Computers Nanyuki — Web Platform
+# Alpha Computers Nanyuki
 
-A full-featured e-commerce and service management platform for **Alpha Computers Nanyuki**, a technology hub based in Nanyuki, Kenya. Built with React, TypeScript, Vite, Tailwind CSS, and shadcn/ui.
+Online shop and back office in **one Next.js project**. The storefront, the admin pages and the API (`/api/*`) all deploy together to Vercel. There is no separate API server.
 
----
+## Run it on your computer
 
-## Live Features
+1. Install Node 22 or newer and Docker Desktop.
+2. `npm install`
+3. `copy .env.example .env`, then set `JWT_SECRET` to a random string of 32+ characters:
+   `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+4. `docker compose up -d` starts PostgreSQL.
+5. `npm run db:deploy` creates the tables, then `npm run db:seed` adds the first admin and inventory accounts and sample products. Leave a seed password empty and a random one is printed once.
+6. `npm run dev` and open http://localhost:3000. Staff sign in at `/admin/login`.
 
-### Customer-Facing
+## Put it on Vercel
 
-| Section | Description |
-|---|---|
-| **Hero Slideshow** | 5-image auto-playing background with staggered text animations |
-| **Product Catalog** | Filter by category (Laptops, Desktops, Accessories, Monitors, PC Parts, Laptop Parts), price range, brand and condition |
-| **Product Detail Page** | Image gallery with thumbnails, full description, specs table, quantity selector, Add to Cart |
-| **PC Components** | Dedicated section for desktop PC parts (CPUs, GPUs, RAM, SSDs, motherboards) |
-| **Laptop Spare Parts** | Dedicated section for laptop parts (batteries, screens, keyboards, chargers, fans) |
-| **Services** | Book any repair service (Hardware Diagnostic, OS Install, Data Recovery, Network Setup, Virus Removal, Screen Replacement) with a ticket system |
-| **Repair Tracker** | Enter a ticket number to see real-time status, technician, estimated cost and notes |
-| **Custom PC Builds** | 4-step form — build type, budget range, use cases, contact details — submits a build request to admin |
-| **E-Waste Disposal** | Schedule a drop-off for old electronics with secure data destruction and eco-friendly recycling |
-| **About Us** | Company story, stats (years, customers, repairs, warranty) |
-| **Contact / Footer** | Contact form, phone, address, dynamic Google Maps embed |
-| **Shopping Cart** | Add/remove items, quantity stepper, order summary |
-| **Checkout** | 3-step flow — Delivery/Pickup → Payment (Pay on Delivery / M-Pesa) → Order Confirmation |
-| **WhatsApp FAB** | Floating chat button (configurable number via admin settings) |
-| **Dark / Light Mode** | System-aware theme with toggle in header and admin sidebar |
+1. Push the repository and import it in Vercel. The framework is detected as Next.js.
+2. Add a Postgres database from the Vercel Marketplace (for example Neon). Set:
+   - `DATABASE_URL` to the pooled connection string
+   - `DIRECT_URL` to the unpooled connection string (on Neon this is `DATABASE_URL_UNPOOLED`)
+3. Add a Blob store to the project. This sets `BLOB_READ_WRITE_TOKEN`, which product photo uploads need.
+4. Set `JWT_SECRET`, `STORE_URL` and `NEXT_PUBLIC_SITE_URL` (your public address). Every variable is listed in `.env.example`.
+5. Create the tables once from your computer, with the production values in your environment:
+   `npm run db:deploy` then `npm run db:seed`.
+6. Deploy.
 
----
+Email, WhatsApp and the M-Pesa prompt only work once their keys are set. Customers can still pay by paybill or till and enter the M-Pesa code without any keys.
 
-### Admin Panel (`/admin`)
+## Commands
 
-| Page | Description |
-|---|---|
-| **Dashboard** | Overview stats — orders, repairs, revenue |
-| **Products** | Add, edit, delete products with multiple image uploads, description, specs, category, stock |
-| **Orders** | View and manage customer orders |
-| **Repairs** | View all repair bookings, update status (Received → Diagnostic → In Repair → Ready → Completed), assign technician, set estimated cost, add notes |
-| **Manage Services** | Edit service prices and toggle services on/off — changes reflect immediately on the website |
-| **Custom Builds** | Edit budget ranges shown to customers; view and manage all build requests with status tracking |
-| **E-Waste Disposal** | View all disposal drop-off requests, update status (Pending → Confirmed → Received → Processed) |
-| **Reports** | Generate and download PDF reports for Sales, Orders, and Service Jobs with date range filter |
-| **Site Settings** | Update company name, logos (light/dark), map coordinates, phone, WhatsApp number |
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the site and API locally |
+| `npm run build` / `npm start` | Production build and server |
+| `npm run lint` | Check the code |
+| `npm test` | Unit tests |
+| `npm run test:e2e` | Order, inventory and refund checks against a running server (needs a seeded database) |
+| `npm run db:migrate` | Create a new migration while developing |
+| `npm run db:deploy` | Apply migrations |
+| `npm run db:studio` | Browse the database |
 
----
+## Where things are
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | React 18 + TypeScript |
-| Build Tool | Vite |
-| Styling | Tailwind CSS v3 + shadcn/ui |
-| Routing | React Router v6 |
-| Animations | Framer Motion |
-| Forms | React Hook Form + Zod |
-| PDF Generation | jsPDF + jsPDF-AutoTable |
-| Theme | next-themes |
-| Icons | Lucide React |
-| Notifications | Sonner |
-| Testing | Vitest + @testing-library/react |
-
----
-
-## Project Structure
-
-```
-alpha-tech-hub-ui/
-├── src/
-│   ├── assets/              # Logo images, hero photo
-│   ├── components/
-│   │   ├── admin/           # All admin panel pages
-│   │   ├── landing/         # All customer-facing sections
-│   │   └── ui/              # shadcn/ui primitives
-│   ├── contexts/            # Global state (Products, Cart, Services, Custom Builds, Disposal, Site Config)
-│   ├── hooks/               # Custom hooks
-│   ├── lib/                 # Utilities (PDF generation, cn helper)
-│   ├── pages/               # Route-level pages (Index, Cart, Checkout, ProductDetail, Admin layouts)
-│   └── test/                # Vitest unit + property tests
-├── public/
-│   ├── logo-red.png         # Favicon
-│   ├── robots.txt
-│   └── sitemap.xml
-└── index.html               # SEO meta tags, structured data (JSON-LD)
-```
-
----
-
-## Getting Started
-
-```bash
-# Install dependencies
-cd alpha-tech-hub-ui
-npm install
-
-# Start development server
-npm run dev
-
-# Run tests
-npx vitest run
-
-# Build for production
-npm run build
-```
-
----
-
-## State Management
-
-All app state lives in React Context providers mounted in `main.tsx`:
-
-- **`SiteConfigProvider`** — company name, logos, map coords, phone, WhatsApp
-- **`ProductsProvider`** — product catalogue (shared between catalog and admin)
-- **`ServicesProvider`** — repair services, prices, bookings/tickets
-- **`CustomBuildsProvider`** — budget ranges and build requests
-- **`DisposalProvider`** — e-waste disposal requests
-- **`CartProvider`** — shopping cart with localStorage persistence
-
----
-
-## SEO
-
-- Full meta tags (title, description, keywords, geo, canonical)
-- Open Graph + Twitter Card tags
-- JSON-LD structured data (`ComputerStore` schema)
-- `sitemap.xml` and `robots.txt` in `/public`
-
-> Update `alphacomputersnanyuki.co.ke` and `+254700000000` in `index.html` with the real domain and phone number before going live.
-
----
-
-## Tests
-
-25 passing tests across 4 files:
-
-| File | Tests | Coverage |
-|---|---|---|
-| `theme.test.tsx` | 3 | Dark/light class toggling |
-| `siteConfig.test.tsx` | 7 | localStorage persistence, defaults, partial merge |
-| `cart.test.tsx` | 14 | Property tests — add/remove invariant, total price correctness |
-| `example.test.ts` | 1 | Sanity check |
-
----
-
-## Deployment
-
-The app is a standard Vite SPA. Deploy to any static host (Vercel, Netlify, GitHub Pages):
-
-```bash
-npm run build
-# Output in dist/
-```
-
-For client-side routing to work, configure your host to redirect all 404s to `index.html`.
-
----
-
-## License
-
-Private — Alpha Computers Nanyuki. All rights reserved.
+- `src/app` pages and the single API entry, `src/app/api/[...path]/route.ts`
+- `src/server` the API: `routes/` (endpoints), `services/` (business rules), `auth.ts`, `dto.ts` (input checks)
+- `src/views`, `src/components` the screens
+- `prisma` schema, migrations and seed

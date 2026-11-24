@@ -1,6 +1,6 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "@/lib/router";
 import { Loader2, ShieldAlert } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { canAccess, useAuth } from "@/contexts/AuthContext";
 
@@ -17,7 +17,7 @@ const RequireStaff = ({ children, checkPath = false }: { children: React.ReactNo
       </div>
     );
   }
-  if (!user) return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
+  if (!user) return <Navigate to={`/admin/login?from=${encodeURIComponent(location.pathname)}`} replace />;
 
   if (checkPath ? !canAccess(user.role, location.pathname) : user.role === "CUSTOMER") {
     return (

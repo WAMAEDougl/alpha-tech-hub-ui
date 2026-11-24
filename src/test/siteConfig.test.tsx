@@ -15,6 +15,7 @@ const DEFAULT_CONFIG: SiteConfig = {
   mapLat: -0.0167,
   mapLng: 37.0667,
   phone: "+254700000000",
+  email: "info@alphacomputersnanyuki.co.ke",
   whatsappNumber: "+254700000000",
 };
 
@@ -51,7 +52,7 @@ describe("SiteConfigContext", () => {
   });
 
   it("loads the default config when localStorage is empty", () => {
-    let captured: SiteConfig | null = null;
+    let captured = null as SiteConfig | null;
     renderWithProvider((c) => {
       captured = c;
     });
@@ -66,7 +67,7 @@ describe("SiteConfigContext", () => {
     };
     localStorage.setItem("siteConfig", JSON.stringify(stored));
 
-    let captured: SiteConfig | null = null;
+    let captured = null as SiteConfig | null;
     renderWithProvider((c) => {
       captured = c;
     });
@@ -80,7 +81,7 @@ describe("SiteConfigContext", () => {
       companyName: "Updated Name",
     };
 
-    let captured: SiteConfig | null = null;
+    let captured = null as SiteConfig | null;
     const { getByRole } = renderWithProvider((c) => {
       captured = c;
     }, updated);
@@ -136,7 +137,7 @@ describe("SiteConfigContext", () => {
   it("falls back to default config when localStorage contains invalid JSON", () => {
     localStorage.setItem("siteConfig", "not-valid-json");
 
-    let captured: SiteConfig | null = null;
+    let captured = null as SiteConfig | null;
     renderWithProvider((c) => {
       captured = c;
     });
@@ -147,7 +148,7 @@ describe("SiteConfigContext", () => {
   it("merges partial stored config with defaults", () => {
     localStorage.setItem("siteConfig", JSON.stringify({ companyName: "Partial" }));
 
-    let captured: SiteConfig | null = null;
+    let captured = null as SiteConfig | null;
     renderWithProvider((c) => {
       captured = c;
     });

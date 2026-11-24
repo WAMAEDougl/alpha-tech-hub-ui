@@ -1,4 +1,4 @@
 node_modules
-dist
+.next
 .vercel
-alpha-tech-hub-api
+scripts

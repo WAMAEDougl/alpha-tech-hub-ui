@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface SiteConfig {
@@ -47,9 +49,16 @@ export const SiteConfigContext = createContext<SiteConfigContextValue>({
 });
 
 export function SiteConfigProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfigState] = useState<SiteConfig>(loadConfig);
+  const [config, setConfigState] = useState<SiteConfig>(DEFAULT_CONFIG);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setConfigState(loadConfig());
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return; // never overwrite the saved settings with the defaults
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     } catch {

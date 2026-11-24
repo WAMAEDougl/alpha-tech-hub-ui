@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface CartItem {
@@ -10,6 +12,8 @@ export interface CartItem {
 
 interface CartContextValue {
   items: CartItem[];
+  /** false until the saved cart has been read from the browser; pages should wait for it before deciding the cart is empty */
+  ready: boolean;
   addItem: (item: CartItem) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -32,6 +36,7 @@ function loadCart(): CartItem[] {
 
 export const CartContext = createContext<CartContextValue>({
   items: [],
+  ready: true,
   addItem: () => {},
   removeItem: () => {},
   updateQuantity: () => {},
@@ -39,15 +44,23 @@ export const CartContext = createContext<CartContextValue>({
 });
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(loadCart);
+  // Start empty so the server and the first browser render agree, then load the saved cart.
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setItems(loadCart());
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return; // never overwrite the saved cart with the empty starting state
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
       // ignore storage errors
     }
-  }, [items]);
+  }, [items, ready]);
 
   function addItem(item: CartItem) {
     setItems((prev) => {
@@ -84,7 +97,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{ items, ready, addItem, removeItem, updateQuantity, clearCart }}>
       {children}
     </CartContext.Provider>
   );

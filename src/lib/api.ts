@@ -2,17 +2,22 @@
 // The JWT lives in sessionStorage: it is gone when the browser closes, which is what you
 // want on a shared shop computer.
 
-const BASE = ((import.meta.env.VITE_API_URL as string | undefined) || "http://localhost:3000").replace(/\/$/, "");
+// Same site by default: the API lives in this project at /api. Set NEXT_PUBLIC_API_URL only to point at a different server.
+export const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "/api").replace(/\/$/, "");
+const BASE = API_BASE;
 const TOKEN_KEY = "alpha_admin_token";
+
+const browser = () => typeof window !== "undefined";
 
 export const tokenStore = {
   // staff sessions end when the browser closes (shared shop computers); customers stay signed in on their own device
-  get: () => sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY),
+  get: () => (browser() ? sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY) : null),
   set: (t: string, remember = false) => {
+    if (!browser()) return;
     sessionStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_KEY);
     (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, t);
   },
-  clear: () => { sessionStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_KEY); },
+  clear: () => { if (browser()) { sessionStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_KEY); } },
 };
 
 export class ApiError extends Error {

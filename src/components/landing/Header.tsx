@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "@/lib/router";
 import { ShoppingCart, User, Search, Menu, X, ChevronDown, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useTheme } from "next-themes";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
 import { useCart } from "@/contexts/CartContext";
 import { useProducts } from "@/contexts/ProductsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import logoBlack from "@/assets/logo-black.png";
-import logoRed from "@/assets/logo-red.png";
+const logoBlack = "/brand/logo-black.png";
+const logoRed = "/brand/logo-red.png";
 
 const PLACEHOLDER_LOGO_LIGHT = "/logo-light.png";
 const PLACEHOLDER_LOGO_DARK = "/logo-dark.png";
@@ -219,7 +218,6 @@ const Header = () => {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
-  const { resolvedTheme } = useTheme();
   // marks the page as the public store, which switches on its quieter typography (the admin never renders this header)
   useLayoutEffect(() => {
     document.documentElement.classList.add("store");
@@ -236,10 +234,10 @@ const Header = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isDark = resolvedTheme === "dark"; // resolvedTheme: what is actually showing (theme can be "system")
-  const logoSrc = isDark
-    ? (config.logoDark && config.logoDark !== PLACEHOLDER_LOGO_DARK ? config.logoDark : logoRed)
-    : (config.logoLight && config.logoLight !== PLACEHOLDER_LOGO_LIGHT ? config.logoLight : logoBlack);
+  // Both logos are rendered and CSS shows the one for the theme that is on screen. No JavaScript timing involved,
+  // so there is no wrong-logo flash on first load (including when the visitor's theme is "system").
+  const logoLight = config.logoLight && config.logoLight !== PLACEHOLDER_LOGO_LIGHT ? config.logoLight : logoBlack;
+  const logoDark = config.logoDark && config.logoDark !== PLACEHOLDER_LOGO_DARK ? config.logoDark : logoRed;
 
   return (
     <>
@@ -253,7 +251,8 @@ const Header = () => {
           {/* Logo */}
           <motion.div>
             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center gap-2 shrink-0 group">
-              <img src={logoSrc} alt={config.companyName} className="h-10 w-auto" />
+              <img src={logoLight} alt={config.companyName} className="h-10 w-auto dark:hidden" />
+              <img src={logoDark} alt="" aria-hidden className="hidden h-10 w-auto dark:block" />
               <span className="font-heading text-[1.4rem] leading-none hidden sm:block">
                 {config.companyName}
               </span>

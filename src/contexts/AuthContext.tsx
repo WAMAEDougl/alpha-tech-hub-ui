@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api, tokenStore, UNAUTHORIZED_EVENT } from "@/lib/api";
 
@@ -33,7 +35,8 @@ type AuthResponse = { access_token: string; user: AuthUser };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(() => !!tokenStore.get());
+  // true until we know whether a stored session exists (storage only exists in the browser)
+  const [loading, setLoading] = useState(true);
 
   const logout = useCallback(() => {
     tokenStore.clear();
@@ -42,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Restore the session from a stored token. The server is the source of truth for the role.
   useEffect(() => {
-    if (!tokenStore.get()) return;
+    if (!tokenStore.get()) { setLoading(false); return; }
     let cancelled = false;
     api<AuthUser>("/auth/me")
       .then(u => { if (!cancelled) setUser(u); })

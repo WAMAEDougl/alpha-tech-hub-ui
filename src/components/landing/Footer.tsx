@@ -2,7 +2,7 @@ import { Phone, Mail, MapPin, Facebook, Twitter, MessageCircle } from "lucide-re
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import logoRed from "@/assets/logo-red.png";
+const logoRed = "/brand/logo-red.png";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
 
 const Footer = () => {

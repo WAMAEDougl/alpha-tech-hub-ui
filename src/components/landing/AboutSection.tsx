@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Shield, Award, Users, Clock } from "lucide-react";
-import logoRed from "@/assets/logo-red.png";
+const logoRed = "/brand/logo-red.png";
 
 const stats = [
   { icon: Clock, label: "Years in Business", value: "9+" },

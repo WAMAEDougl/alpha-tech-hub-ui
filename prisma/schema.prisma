@@ -1,0 +1,707 @@
+// Prisma Schema — Alpha Computers Nanyuki Backend
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider      = "prisma-client-js"
+  // "native" for this machine, plus the Linux build Vercel runs on
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  INVENTORY
+  CUSTOMER
+}
+
+enum StockMovementType {
+  RECEIVED // goods in from supplier
+  SALE // reserved/deducted by a customer order
+  RETURN // order cancelled or customer return, put back on shelf
+  ADJUSTMENT // stock-take correction (+/-)
+  DAMAGED // written off: damaged, lost, expired
+}
+
+enum LifecycleStatus {
+  AWAITING_PAYMENT
+  AWAITING_VERIFICATION
+  PAID
+  PAY_ON_DELIVERY
+  FULFILLING
+  COMPLETED
+  CANCELLED
+  STALE
+}
+
+enum PaymentStatus {
+  PENDING
+  AWAITING_VERIFICATION
+  PAID
+  ON_DELIVERY
+  FAILED
+}
+
+enum WorkflowStage {
+  OFFICE_REVIEW
+  SOURCING
+  READY_TO_PACK
+  PACKING
+  PACKED
+  READY_PICKUP
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+  AWAITING_RETURN
+}
+
+enum PaymentMethod {
+  MPESA_STK
+  MPESA_MANUAL
+  CASH
+}
+
+enum FulfillmentMode {
+  DELIVERY
+  PICKUP
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  PARTIAL
+  RECEIVED
+  CANCELLED
+}
+
+enum StockTakeStatus {
+  OPEN
+  APPLIED
+  CANCELLED
+}
+
+enum ReturnKind {
+  CUSTOMER
+  CANCELLED_DISPATCH
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+  CLOSED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+  FREE_DELIVERY
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum RepairStatus {
+  RECEIVED
+  DIAGNOSTIC
+  AWAITING_PARTS
+  IN_REPAIR
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  phone     String?
+  role      UserRole @default(CUSTOMER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders         Order[]
+  cartItems      CartItem[]
+  repairTickets  RepairTicket[]
+  stockMovements StockMovement[]
+  orderEvents    OrderEvent[]
+  addresses      CustomerAddress[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS (singleton row — id always = 1)
+// ─────────────────────────────────────────────
+
+model Settings {
+  id                 Int      @id @default(autoincrement())
+  companyName        String   @default("Alpha Computers Nanyuki")
+  logoUrl            String?
+  contactEmail       String?
+  whatsappNumber     String?
+  locationLat        Decimal? @db.Decimal(10, 7)
+  locationLng        Decimal? @db.Decimal(10, 7)
+  address            String?
+  // payments
+  mpesaManualEnabled Boolean  @default(true)
+  paybillNumber      String?
+  tillNumber         String?
+  mpesaStkEnabled    Boolean  @default(false)
+  codEnabled         Boolean  @default(true)
+  // after-sales
+  returnWindowDays   Int      @default(7)
+  updatedAt          DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ─────────────────────────────────────────────
+// PRODUCTS
+// ─────────────────────────────────────────────
+
+model Product {
+  id                    String   @id @default(uuid())
+  name                  String
+  sku                   String   @unique
+  brand                 String
+  category              String
+  condition             String   @default("New")
+  price                 Decimal  @db.Decimal(12, 2)
+  stock                 Int      @default(0)
+  /// units promised to approved orders but still on the shelf. Available = stock - reservedQuantity
+  reservedQuantity      Int      @default(0)
+  /// when true a customer may order more than is on the shelf; the shortfall is sourced from a supplier
+  allowSupplierSourcing Boolean  @default(false)
+  reorderLevel          Int      @default(5)
+  location              String? // shelf / bin, e.g. "A-03"
+  costPrice             Decimal? @db.Decimal(12, 2)
+  summary               String?
+  description           String?
+  images                String[] @default([])
+  specs                 Json     @default("[]")
+  rating                Decimal  @default(5) @db.Decimal(3, 1)
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+  purchaseItems  PurchaseOrderItem[]
+  stockTakeItems StockTakeItem[]
+
+  @@map("products")
+}
+
+// ─────────────────────────────────────────────
+// CART
+// ─────────────────────────────────────────────
+
+model CartItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+  @@map("cart_items")
+}
+
+// ─────────────────────────────────────────────
+// ORDERS  (modelled on the AMVANI Commerce workflow)
+//   lifecycleStatus = where the order is commercially
+//   paymentStatus   = money, independent of fulfilment
+//   workflowStage   = where it is in the warehouse
+// ─────────────────────────────────────────────
+
+model Order {
+  id            String  @id @default(uuid())
+  orderNumber   String  @unique
+  userId        String?
+  customerName  String
+  customerPhone String
+  customerEmail String?
+
+  lifecycleStatus LifecycleStatus @default(AWAITING_PAYMENT)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  workflowStage   WorkflowStage   @default(OFFICE_REVIEW)
+  paymentMethod   PaymentMethod
+  fulfillmentMode FulfillmentMode
+
+  subtotal       Decimal @db.Decimal(12, 2)
+  deliveryFee    Decimal @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal @default(0) @db.Decimal(12, 2)
+  totalAmount    Decimal @db.Decimal(12, 2)
+
+  deliveryZoneId   String?
+  /// false when the address matched no delivery zone: office must set the fee before approving
+  deliveryResolved Boolean @default(true)
+  discountCodeId   String?
+  deliveryAddress  String?
+  notes            String?
+
+  // payment evidence
+  paymentReference       String? // M-Pesa code the customer says they paid with
+  paymentReferenceAt     DateTime?
+  mpesaReceiptNumber     String? // verified code
+  mpesaCheckoutRequestId String?
+  paidAt                 DateTime?
+
+  // office review / warehouse
+  reviewedAt            DateTime?
+  reviewedById          String?
+  inventoryIssue        String?
+  inventoryAssigneeId   String?
+  riderName             String?
+  riderPhone            String?
+  dispatchedAt          DateTime?
+  deliveredAt           DateTime?
+  cancelledAt           DateTime?
+  cancelReason          String?
+  deliveryFailedAt      DateTime?
+  deliveryFailureReason String?
+  /// set once physical stock has been deducted, so it can never be deducted twice
+  stockSettledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User?             @relation(fields: [userId], references: [id])
+  deliveryZone  DeliveryZone?     @relation(fields: [deliveryZoneId], references: [id])
+  discountCode  DiscountCode?     @relation(fields: [discountCodeId], references: [id])
+  items         OrderItem[]
+  events        OrderEvent[]
+  invoice       OrderInvoice?
+  returns       OrderReturn[]
+  notifications NotificationLog[]
+
+  @@index([lifecycleStatus, workflowStage, createdAt])
+  @@index([userId, createdAt])
+  @@index([customerPhone])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String
+  sku         String?
+  unitPrice   Decimal @db.Decimal(12, 2)
+  quantity    Int
+
+  // warehouse bookkeeping (per line)
+  reservedQuantity Int       @default(0) // held for this order, still on the shelf
+  pickedQuantity   Int       @default(0) // physically pulled / received for this order
+  deductedQuantity Int       @default(0) // actually left the shop (handoff)
+  packChecked      Boolean   @default(false)
+  planSupplierId   String?
+  planExpectedDate DateTime?
+  planNote         String?
+
+  order       Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product           @relation(fields: [productId], references: [id])
+  receipts    SourcingReceipt[]
+  returnItems OrderReturnItem[]
+
+  @@map("order_items")
+}
+
+model OrderEvent {
+  id              String          @id @default(uuid())
+  orderId         String
+  lifecycleStatus LifecycleStatus
+  workflowStage   WorkflowStage
+  note            String?
+  userId          String?
+  createdAt       DateTime        @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id])
+
+  @@map("order_events")
+}
+
+/// Issued when the office approves an order. Frozen: price or item changes need cancel + re-order.
+model OrderInvoice {
+  id            String   @id @default(uuid())
+  seq           Int      @unique @default(autoincrement())
+  invoiceNumber String   @unique
+  orderId       String   @unique
+  issuedAt      DateTime @default(now())
+  issuedById    String?
+  snapshot      Json
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_invoices")
+}
+
+// ─────────────────────────────────────────────
+// STOCK LEDGER, SUPPLIERS, PURCHASING, STOCK-TAKES
+// ─────────────────────────────────────────────
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  productId   String
+  type        StockMovementType
+  quantity    Int // signed: + in, - out
+  stockBefore Int
+  stockAfter  Int
+  reason      String?
+  reference   String? // order number, PO number, supplier invoice
+  userId      String?
+  createdAt   DateTime          @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@index([productId, createdAt])
+  @@map("stock_movements")
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String?
+  email     String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+  receipts       SourcingReceipt[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id          String              @id @default(uuid())
+  number      String              @unique
+  supplierId  String
+  status      PurchaseOrderStatus @default(DRAFT)
+  notes       String?
+  createdById String?
+  createdAt   DateTime            @default(now())
+  orderedAt   DateTime?
+  receivedAt  DateTime?
+
+  supplier Supplier            @relation(fields: [supplierId], references: [id])
+  items    PurchaseOrderItem[]
+  receipts PurchaseReceipt[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               String   @id @default(uuid())
+  purchaseOrderId  String
+  productId        String
+  quantity         Int
+  receivedQuantity Int      @default(0)
+  unitCost         Decimal? @db.Decimal(12, 2)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+/// Marks a purchase-order receipt as done: the client-supplied id stops a retry adding the goods twice.
+model PurchaseReceipt {
+  id              String   @id
+  purchaseOrderId String
+  createdById     String?
+  createdAt       DateTime @default(now())
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_receipts")
+}
+
+/// One physical receipt of goods against an order line. The client-supplied id makes retries safe.
+model SourcingReceipt {
+  id          String   @id
+  orderItemId String
+  supplierId  String?
+  source      String // WAREHOUSE | SUPPLIER
+  quantity    Int
+  unitCost    Decimal? @db.Decimal(12, 2)
+  reference   String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+  supplier  Supplier? @relation(fields: [supplierId], references: [id])
+
+  @@map("sourcing_receipts")
+}
+
+model StockTake {
+  id          String          @id @default(uuid())
+  status      StockTakeStatus @default(OPEN)
+  note        String?
+  createdById String?
+  createdAt   DateTime        @default(now())
+  appliedAt   DateTime?
+
+  items StockTakeItem[]
+
+  @@map("stock_takes")
+}
+
+model StockTakeItem {
+  id          String @id @default(uuid())
+  stockTakeId String
+  productId   String
+  expected    Int
+  counted     Int?
+
+  stockTake StockTake @relation(fields: [stockTakeId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@unique([stockTakeId, productId])
+  @@map("stock_take_items")
+}
+
+// ─────────────────────────────────────────────
+// RETURNS
+// ─────────────────────────────────────────────
+
+model OrderReturn {
+  id              String       @id @default(uuid())
+  orderId         String
+  kind            ReturnKind   @default(CUSTOMER)
+  status          ReturnStatus @default(REQUESTED)
+  reason          String?
+  requestRef      String?      @unique
+  decisionNote    String?
+  /// what the customer asked for: REFUND or EXCHANGE
+  resolution      String       @default("REFUND")
+  refundAmount    Decimal?     @db.Decimal(12, 2)
+  refundNote      String?
+  /// M-Pesa code / cash receipt of the payout, so it can be traced later
+  refundReference String?
+  refundedAt      DateTime?
+  refundedById    String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  order Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items OrderReturnItem[]
+
+  @@map("order_returns")
+}
+
+model OrderReturnItem {
+  id                String @id @default(uuid())
+  returnId          String
+  orderItemId       String
+  quantity          Int
+  receivedQuantity  Int    @default(0)
+  restockedQuantity Int    @default(0)
+  heldQuantity      Int    @default(0)
+
+  return    OrderReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItem OrderItem   @relation(fields: [orderItemId], references: [id])
+
+  @@map("order_return_items")
+}
+
+// ─────────────────────────────────────────────
+// DELIVERY ZONES, DISCOUNTS, ADDRESSES, NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model DeliveryZone {
+  id            String   @id @default(uuid())
+  name          String
+  fee           Decimal  @db.Decimal(10, 2)
+  /// lower-case place names this zone covers (towns, estates, counties), matched against the customer area
+  areas         String[] @default([])
+  estimatedDays String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+
+  orders    Order[]
+  addresses CustomerAddress[]
+
+  @@map("delivery_zones")
+}
+
+model DiscountCode {
+  id          String       @id @default(uuid())
+  code        String       @unique
+  type        DiscountType
+  value       Decimal      @default(0) @db.Decimal(10, 2)
+  minSubtotal Decimal?     @db.Decimal(12, 2)
+  maxUses     Int?
+  usedCount   Int          @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+
+  orders Order[]
+
+  @@map("discount_codes")
+}
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  userId      String
+  label       String   @default("Home")
+  fullName    String
+  phone       String
+  area        String // town or estate the zone is matched on
+  addressLine String
+  zoneId      String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  zone DeliveryZone? @relation(fields: [zoneId], references: [id])
+
+  @@map("customer_addresses")
+}
+
+/// One row per (order, channel, milestone). The unique key stops a milestone being sent twice.
+model NotificationLog {
+  id                String              @id @default(uuid())
+  orderId           String
+  channel           NotificationChannel
+  milestone         String
+  status            NotificationStatus  @default(PENDING)
+  providerMessageId String?
+  error             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, channel, milestone])
+  @@map("notification_logs")
+}
+
+// ─────────────────────────────────────────────
+// REPAIR TICKETS
+// ─────────────────────────────────────────────
+
+model RepairTicket {
+  id               String       @id @default(uuid())
+  ticketNumber     String       @unique
+  userId           String?
+  customerName     String
+  customerPhone    String
+  customerEmail    String?
+  deviceBrand      String
+  deviceModel      String?
+  issueDescription String
+  status           RepairStatus @default(RECEIVED)
+  serviceType      String?
+  technician       String?
+  technicianNotes  String?
+  estimatedCost    Decimal?     @db.Decimal(10, 2)
+  finalCost        Decimal?     @db.Decimal(10, 2)
+  completedAt      DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("repair_tickets")
+}
+
+// ─────────────────────────────────────────────
+// CUSTOM BUILD REQUESTS
+// ─────────────────────────────────────────────
+
+model BuildRequest {
+  id          String   @id @default(uuid())
+  name        String
+  phone       String
+  email       String?
+  buildType   String
+  budget      String
+  useCases    String[] @default([])
+  notes       String?
+  status      String   @default("New")
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("build_requests")
+}
+
+// ─────────────────────────────────────────────
+// DISPOSAL REQUESTS
+// ─────────────────────────────────────────────
+
+model DisposalRequest {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String
+  email         String?
+  items         String
+  quantity      Int      @default(1)
+  preferredDate String?
+  notes         String?
+  status        String   @default("Pending")
+  submittedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("disposal_requests")
+}
+
+// ─────────────────────────────────────────────
+// QUOTE REQUESTS
+// ─────────────────────────────────────────────
+
+model QuoteRequest {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  interest  String
+  message   String?
+  status    String   @default("New")
+  createdAt DateTime @default(now())
+
+  @@map("quote_requests")
+}
+
+/// Fixed-window request counter shared by every serverless instance (see src/server/rate-limit.ts).
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+
+  @@map("rate_limits")
+}

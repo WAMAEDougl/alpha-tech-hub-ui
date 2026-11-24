@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, BadgeCheck, ClipboardCheck, DollarSign, Loader2, PackageCheck, Truck, Warehouse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

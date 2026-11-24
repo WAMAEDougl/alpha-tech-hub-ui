@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "@/lib/router";
 import { Menu, LogOut, Store } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { useSiteConfig } from "@/contexts/SiteConfigContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { navFor } from "@/components/admin/adminNav";
 import { useTheme } from "next-themes";
-import logoRed from "@/assets/logo-red.png";
+const logoRed = "/brand/logo-red.png";
 
 const PLACEHOLDER_LOGOS = ["/logo-light.png", "/logo-dark.png"];
 

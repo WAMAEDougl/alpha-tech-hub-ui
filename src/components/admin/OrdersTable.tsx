@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Loader2, MapPin, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
