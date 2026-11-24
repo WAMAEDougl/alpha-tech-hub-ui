@@ -42,7 +42,7 @@ const PCPartsSection = () => {
               viewport={{ once: true }}
             >
               <Card
-                className="group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                className="glass group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => navigate(`/products/${product.id}`)}
               >
                 <div className="relative overflow-hidden">

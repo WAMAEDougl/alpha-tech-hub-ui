@@ -36,7 +36,7 @@ const CatalogSection = () => {
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar Filters */}
           <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 shrink-0`}>
-            <Card>
+            <Card className="glass">
               <CardContent className="p-5 space-y-6">
                 <div>
                   <h3 className="font-heading font-semibold mb-3">Categories</h3>
@@ -114,7 +114,7 @@ const CatalogSection = () => {
                   viewport={{ once: true }}
                 >
                   <Card
-                    className="group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    className="glass group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                     onClick={() => navigate(`/products/${product.id}`)}
                   >
                     <div className="relative overflow-hidden">

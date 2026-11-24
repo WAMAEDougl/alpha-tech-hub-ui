@@ -133,7 +133,7 @@ const DisposalSection = () => {
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full hover:shadow-md transition-shadow">
+              <Card className="glass h-full hover:shadow-md transition-shadow">
                 <CardContent className="p-5 flex flex-col gap-3">
                   <div className={`h-11 w-11 rounded-xl ${b.bg} flex items-center justify-center`}>
                     <b.icon className={`h-5 w-5 ${b.color}`} />

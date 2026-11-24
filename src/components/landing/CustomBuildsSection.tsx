@@ -128,7 +128,7 @@ const CustomBuildsSection = () => {
                 <Card
                   key={type.title}
                   onClick={() => setSelectedType(type.title)}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                  className={`glass cursor-pointer transition-all duration-200 hover:shadow-md ${
                     selectedType === type.title
                       ? "border-primary ring-2 ring-primary/30"
                       : "hover:border-primary/40"

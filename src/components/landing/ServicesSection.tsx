@@ -88,7 +88,7 @@ const ServicesSection = () => {
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full hover:shadow-lg transition-shadow group">
+              <Card className="glass h-full hover:shadow-lg transition-shadow group">
                 <CardContent className="p-6 flex flex-col h-full">
                   <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                     <service.icon className="h-6 w-6 text-primary" />
@@ -106,7 +106,7 @@ const ServicesSection = () => {
         </div>
 
         {/* Repair Status Tracker */}
-        <Card className="max-w-2xl mx-auto">
+        <Card className="glass max-w-2xl mx-auto">
           <CardContent className="p-6">
             <h3 className="font-heading font-semibold text-xl mb-4 text-center">Track Your Repair</h3>
             <div className="flex flex-col sm:flex-row gap-2 mb-4">

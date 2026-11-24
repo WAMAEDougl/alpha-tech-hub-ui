@@ -62,7 +62,7 @@ const AboutSection = () => {
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="bg-card border rounded-xl p-5 flex flex-col items-center text-center gap-2 hover:shadow-md transition-shadow"
+                  className="glass bg-card border rounded-xl p-5 flex flex-col items-center text-center gap-2 hover:shadow-md transition-shadow"
                 >
                   <stat.icon className="h-6 w-6 text-primary" />
                   <p className="text-2xl font-heading font-bold text-primary">{stat.value}</p>
