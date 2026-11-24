@@ -1,5 +1,4 @@
 import { useState } from "react";
-import SectionHeading from "./SectionHeading";
 import { motion } from "framer-motion";
 import { Cpu, Monitor, Zap, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,22 +14,22 @@ const buildTypes = [
     icon: Zap,
     title: "Gaming PC",
     desc: "High-performance builds for gaming, streaming and content creation",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-red-500",
+    bg: "bg-red-500/10",
   },
   {
     icon: Cpu,
     title: "Workstation",
     desc: "Professional builds for video editing, 3D rendering and heavy workloads",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
   },
   {
     icon: Monitor,
     title: "Home / Office",
     desc: "Reliable everyday builds for browsing, documents and light tasks",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-green-500",
+    bg: "bg-green-500/10",
   },
 ];
 
@@ -75,8 +74,8 @@ const CustomBuildsSection = () => {
 
   if (submitted) {
     return (
-      <section id="custom-builds" className="scroll-mt-20 border-t bg-secondary/40 py-20">
-        <div className="container mx-auto px-6 lg:px-10 max-w-xl text-center">
+      <section id="custom-builds" className="py-16 bg-secondary/30">
+        <div className="container mx-auto px-4 max-w-xl text-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -100,12 +99,22 @@ const CustomBuildsSection = () => {
 
   return (
     <section id="custom-builds" className="py-16 bg-secondary/30">
-      <div className="container mx-auto px-6 lg:px-10">
+      <div className="container mx-auto px-4">
         {/* Header */}
-        <SectionHeading
-          title="Custom PC builds"
-          intro="Tell us your budget and what you will use the PC for. Our technicians hand-pick the components and assemble it for you."
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-3">
+            Custom <span className="text-primary">PC Builds</span>
+          </h2>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            Want a PC built exactly to your needs? Tell us your budget and use case — our
+            technicians will hand-pick the best components and assemble it for you.
+          </p>
+        </motion.div>
 
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-8">
 

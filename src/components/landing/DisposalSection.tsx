@@ -1,5 +1,4 @@
 import { useState } from "react";
-import SectionHeading from "./SectionHeading";
 import { motion } from "framer-motion";
 import { Recycle, ShieldCheck, Leaf, Truck, Send, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,29 +14,29 @@ const benefits = [
     icon: ShieldCheck,
     title: "Secure Data Destruction",
     desc: "All storage devices are wiped or physically destroyed — your data never leaves our hands.",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
   },
   {
     icon: Leaf,
     title: "Eco-Friendly Disposal",
     desc: "We partner with certified recyclers to ensure zero harmful e-waste reaches landfills.",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-green-500",
+    bg: "bg-green-500/10",
   },
   {
     icon: Recycle,
     title: "Parts Recovery",
     desc: "Usable components are refurbished and resold, reducing electronic waste.",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-primary",
+    bg: "bg-primary/10",
   },
   {
     icon: Truck,
     title: "Drop-Off Service",
     desc: "Simply bring your old devices to our Nanyuki store — no appointment needed for small quantities.",
-    color: "text-foreground",
-    bg: "bg-muted",
+    color: "text-orange-500",
+    bg: "bg-orange-500/10",
   },
 ];
 
@@ -79,7 +78,7 @@ const DisposalSection = () => {
   if (submitted) {
     return (
       <section id="disposal" className="py-16">
-        <div className="container mx-auto px-6 lg:px-10 max-w-xl text-center">
+        <div className="container mx-auto px-4 max-w-xl text-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -102,14 +101,27 @@ const DisposalSection = () => {
   }
 
   return (
-    <section id="disposal" className="scroll-mt-20 border-t py-20">
-      <div className="container mx-auto px-6 lg:px-10">
+    <section id="disposal" className="py-16">
+      <div className="container mx-auto px-4">
 
         {/* Header */}
-        <SectionHeading
-          title="Dispose of your old electronics"
-          intro="Bring old computers to Alpha Computers Nanyuki for safe, secure disposal. We handle everything from data destruction to recycling."
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center gap-2 bg-green-500/10 text-green-600 dark:text-green-400 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <Recycle className="h-4 w-4" /> Responsible E-Waste Disposal
+          </div>
+          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-3">
+            Dispose Your Old <span className="text-primary">Electronics</span>
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Don't let old computers collect dust or end up in a landfill. Bring them to Alpha Computers Nanyuki
+            for safe, secure, and eco-friendly disposal — we handle everything from data destruction to recycling.
+          </p>
+        </motion.div>
 
         {/* Benefits */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">

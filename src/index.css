@@ -4,50 +4,50 @@
 
 @layer base {
   :root {
-    /* admin keeps its own working fonts; the public store switches them below (.store) */
+    /* admin keeps its own working fonts */
     --font-heading: var(--font-rajdhani), "Rajdhani", sans-serif;
     --font-body: var(--font-space-grotesk), "Space Grotesk", sans-serif;
 
-    --background: 0 0% 100%;
-    --foreground: 240 6% 10%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 6% 10%;
+    --card-foreground: 0 0% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 6% 10%;
+    --popover-foreground: 0 0% 12%;
 
-    --primary: 357 73% 48%;
+    --primary: 0 75% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 12%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 42%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 240 6% 10%;
+    --accent: 0 0% 10%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 88%;
-    --ring: 357 73% 48%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 75% 56%;
 
-    --radius: 0.375rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 357 73% 48%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 0 75% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 93%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 357 73% 48%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 75% 56%;
 
-    --chart-1: 357 73% 48%;
+    --chart-1: 0 100% 45%;
     --chart-2: 0 0% 20%;
     --chart-3: 0 0% 40%;
     --chart-4: 0 0% 60%;
@@ -55,33 +55,33 @@
   }
 
   .dark {
-    --background: 240 6% 7%;
-    --foreground: 0 0% 96%;
+    --background: 220 15% 10%;
+    --foreground: 0 0% 95%;
 
-    --card: 240 5% 10%;
-    --card-foreground: 0 0% 96%;
+    --card: 220 15% 13%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 240 5% 10%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 220 15% 13%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 357 78% 56%;
+    --primary: 0 75% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4% 12%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 240 4% 14%;
-    --muted-foreground: 240 5% 64%;
+    --muted: 220 10% 20%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 96%;
+    --accent: 220 15% 8%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 4% 18%;
-    --input: 240 4% 20%;
-    --ring: 357 78% 56%;
+    --border: 220 10% 20%;
+    --input: 220 10% 20%;
+    --ring: 0 75% 56%;
 
     --sidebar-background: 220 15% 8%;
     --sidebar-foreground: 0 0% 90%;
@@ -104,30 +104,6 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-bold tracking-tight;
   }
-
-  /* ── The public store: quieter, more editorial type. The class is set by the store header, so the admin never gets it. ── */
-  .store {
-    --font-heading: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
-    --font-body: var(--font-manrope), "Helvetica Neue", Arial, sans-serif;
-    scroll-behavior: smooth;
-  }
-  .store body { letter-spacing: -0.005em; }
-  .store h1, .store h2, .store h3, .store h4, .store .font-heading {
-    font-weight: 500;
-    letter-spacing: -0.015em;
-    font-optical-sizing: auto;
-  }
-  /* controls stay in the sans, even where the old markup asked for the heading font */
-  .store button.font-heading, .store a.font-heading, .store input, .store label.font-heading {
-    font-family: var(--font-body);
-    letter-spacing: 0;
-  }
-  .store ::selection { background: hsl(var(--primary) / 0.18); }
-  .store :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .store, .store * { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 @layer utilities {

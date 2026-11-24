@@ -3,11 +3,10 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => {
-    // resolvedTheme is what is actually showing (theme can be "system")
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   return (

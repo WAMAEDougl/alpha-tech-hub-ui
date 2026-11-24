@@ -94,7 +94,7 @@ function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
     <div ref={ref} className="relative w-full">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Input
-        placeholder="Search"
+        placeholder="Search products..."
         className="pl-9 h-9 focus:ring-2 focus:ring-primary/30 transition-shadow"
         value={query}
         onChange={e => { setQuery(e.target.value); setOpen(true); }}
@@ -108,7 +108,7 @@ function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full mt-1 left-0 right-0 bg-card border rounded-md shadow-lg z-50 overflow-hidden"
+            className="absolute top-full mt-1 left-0 right-0 bg-card border rounded-xl shadow-xl z-50 overflow-hidden"
           >
             {results.map(p => (
               <button
@@ -218,11 +218,6 @@ const Header = () => {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
-  // marks the page as the public store, which switches on its quieter typography (the admin never renders this header)
-  useLayoutEffect(() => {
-    document.documentElement.classList.add("store");
-    return () => document.documentElement.classList.remove("store");
-  }, []);
   const { config } = useSiteConfig();
   const { items } = useCart();
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -242,48 +237,55 @@ const Header = () => {
   return (
     <>
       <motion.header
-        className={`fixed top-0 left-0 right-0 z-50 border-b transition-colors duration-300 ${
-          scrolled ? "bg-background/90 backdrop-blur-xl" : "bg-background/95 backdrop-blur-md"
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
+          scrolled
+            ? "bg-card/90 backdrop-blur-xl shadow-[0_4px_32px_rgba(229,62,62,0.15)]"
+            : "bg-card/95 backdrop-blur-md"
         }`}
       >
-        <div className="container mx-auto px-6 lg:px-10 h-16 flex items-center justify-between gap-4">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
           {/* Logo */}
-          <motion.div>
+          <motion.div initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15, duration: 0.5 }}>
             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center gap-2 shrink-0 group">
               <img src={logoLight} alt={config.companyName} className="h-10 w-auto dark:hidden" />
               <img src={logoDark} alt="" aria-hidden className="hidden h-10 w-auto dark:block" />
-              <span className="font-heading text-[1.4rem] leading-none hidden sm:block">
-                {config.companyName}
+              <span className="font-heading text-xl font-bold hidden sm:block group-hover:text-primary transition-colors duration-200">
+                {config.companyName.toUpperCase()}
               </span>
             </Link>
           </motion.div>
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-1">
-            <motion.div>
+            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
               <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="relative px-3 py-2 text-sm font-medium group">
-                <span className="relative z-10 group-hover:text-foreground/60 transition-colors duration-200">Home</span>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-0 bg-foreground group-hover:w-4/5 transition-all duration-300" />
+                <span className="relative z-10 group-hover:text-primary transition-colors duration-200">Home</span>
+                <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-primary group-hover:w-4/5 transition-all duration-300 rounded-full" />
               </Link>
             </motion.div>
 
             {/* Shop dropdown */}
-            <motion.div
+            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 }}
               className="relative" onMouseEnter={() => setShopOpen(true)} onMouseLeave={() => setShopOpen(false)}>
               <button className="relative px-3 py-2 text-sm font-medium flex items-center gap-1 group">
-                <span className="relative z-10 group-hover:text-foreground/60 transition-colors duration-200">Shop</span>
+                <span className="relative z-10 group-hover:text-primary transition-colors duration-200">Shop</span>
                 <motion.span animate={{ rotate: shopOpen ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="h-3 w-3" /></motion.span>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-0 bg-foreground group-hover:w-4/5 transition-all duration-300" />
+                <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-primary group-hover:w-4/5 transition-all duration-300 rounded-full" />
               </button>
               <AnimatePresence>
                 {shopOpen && (
                   <motion.div initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 bg-card border rounded-md shadow-lg py-2 min-w-[180px] z-50 overflow-hidden">
+                    className="absolute top-full left-0 bg-card border rounded-xl shadow-xl py-2 min-w-[180px] z-50 overflow-hidden">
                     {shopItems.map((item, i) => (
                       <motion.button key={item.label} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.05 }}
                         onClick={() => { scrollTo(item.hash); setShopOpen(false); }}
-                        className="block w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors duration-150">
+                        className="block w-full text-left px-4 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-colors duration-150">
                         {item.label}
                       </motion.button>
                     ))}
@@ -293,21 +295,22 @@ const Header = () => {
             </motion.div>
 
             {/* Services dropdown */}
-            <motion.div
+            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
               className="relative" onMouseEnter={() => setServicesOpen(true)} onMouseLeave={() => setServicesOpen(false)}>
               <button className="relative px-3 py-2 text-sm font-medium flex items-center gap-1 group">
-                <span className="relative z-10 group-hover:text-foreground/60 transition-colors duration-200">Services</span>
+                <span className="relative z-10 group-hover:text-primary transition-colors duration-200">Services</span>
                 <motion.span animate={{ rotate: servicesOpen ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="h-3 w-3" /></motion.span>
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-0 bg-foreground group-hover:w-4/5 transition-all duration-300" />
+                <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-primary group-hover:w-4/5 transition-all duration-300 rounded-full" />
               </button>
               <AnimatePresence>
                 {servicesOpen && (
                   <motion.div initial={{ opacity: 0, y: -8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.96 }} transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 bg-card border rounded-md shadow-lg py-2 min-w-[180px] z-50 overflow-hidden">
+                    className="absolute top-full left-0 bg-card border rounded-xl shadow-xl py-2 min-w-[180px] z-50 overflow-hidden">
                     {serviceItems.map((item, i) => (
                       <motion.button key={item.label} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.05 }}
                         onClick={() => { scrollTo(item.hash); setServicesOpen(false); }}
-                        className="block w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors duration-150">
+                        className="block w-full text-left px-4 py-2.5 text-sm hover:bg-primary/10 hover:text-primary transition-colors duration-150">
                         {item.label}
                       </motion.button>
                     ))}
@@ -319,10 +322,11 @@ const Header = () => {
             {["Custom Builds", "About Us", "Contact"].map((label, i) => {
               const hashes: Record<string, string> = { "Custom Builds": "#custom-builds", "About Us": "#about", "Contact": "#contact" };
               return (
-                <motion.div key={label}>
+                <motion.div key={label} initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 + i * 0.05 }}>
                   <button onClick={() => scrollTo(hashes[label])} className="relative px-3 py-2 text-sm font-medium group">
-                    <span className="relative z-10 group-hover:text-foreground/60 transition-colors duration-200">{label}</span>
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-0 bg-foreground group-hover:w-4/5 transition-all duration-300" />
+                    <span className="relative z-10 group-hover:text-primary transition-colors duration-200">{label}</span>
+                    <span className="absolute inset-0 rounded-md bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 bg-primary group-hover:w-4/5 transition-all duration-300 rounded-full" />
                   </button>
                 </motion.div>
               );
@@ -330,19 +334,19 @@ const Header = () => {
           </nav>
 
           {/* Search bar */}
-          <motion.div
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
             className="hidden md:flex items-center gap-2 flex-1 max-w-sm">
             <SearchBar />
           </motion.div>
 
           {/* Right actions */}
-          <motion.div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="hidden sm:flex border-foreground/25"
+          <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }} className="flex items-center gap-2">
+            <Button size="sm" className="hidden sm:flex hover:shadow-[0_0_12px_rgba(229,62,62,0.5)] transition-shadow duration-300"
               onClick={() => setQuoteOpen(true)}>
               Quick Quote
             </Button>
 
-            <motion.div>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
               <Link to="/cart" className="relative p-2 hover:bg-primary/10 rounded-md transition-colors">
                 <ShoppingCart className="h-5 w-5" />
                 <AnimatePresence>
@@ -356,8 +360,8 @@ const Header = () => {
               </Link>
             </motion.div>
 
-            <motion.div>
-              <Link to="/account" aria-label="My account" title="My account" className="p-2 hover:bg-primary/10 rounded-md transition-colors">
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+              <Link to="/admin" className="p-2 hover:bg-primary/10 rounded-md transition-colors">
                 <User className="h-5 w-5" />
               </Link>
             </motion.div>
@@ -381,7 +385,7 @@ const Header = () => {
           {mobileOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: "easeInOut" }} className="lg:hidden border-t bg-card">
-              <div className="container mx-auto px-6 lg:px-10 py-4 flex flex-col gap-1">
+              <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
                 <div className="mb-3">
                   <SearchBar onNavigate={() => setMobileOpen(false)} />
                 </div>
@@ -394,7 +398,7 @@ const Header = () => {
                   { label: "Contact", action: () => { setMobileOpen(false); scrollTo("#contact"); } },
                 ].map((item, i) => (
                   <motion.button key={item.label} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.06 }}
-                    onClick={item.action} className="py-3 px-3 text-sm font-medium text-left rounded-md hover:bg-muted transition-colors min-h-[44px]">
+                    onClick={item.action} className="py-3 px-3 text-sm font-medium text-left rounded-md hover:bg-primary/10 hover:text-primary transition-colors min-h-[44px]">
                     {item.label}
                   </motion.button>
                 ))}
