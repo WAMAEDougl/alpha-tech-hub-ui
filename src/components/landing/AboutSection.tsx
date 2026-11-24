@@ -11,8 +11,8 @@ const stats = [
 
 const AboutSection = () => {
   return (
-    <section id="about" className="py-16 bg-secondary/30">
-      <div className="container mx-auto px-4">
+    <section id="about" className="scroll-mt-20 border-t bg-secondary/40 py-20">
+      <div className="container mx-auto px-6 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text */}
           <motion.div
@@ -21,9 +21,7 @@ const AboutSection = () => {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-              About <span className="text-primary">Alpha Computers</span>
-            </h2>
+            <h2 className="mb-6 text-3xl md:text-[2.5rem] leading-[1.1] font-heading">About Alpha Computers</h2>
             <p className="text-muted-foreground mb-4">
               Founded in 2015, Alpha Computers Nanyuki has grown to become the most trusted technology
               hub in Laikipia County. We are passionate about connecting people with the right technology

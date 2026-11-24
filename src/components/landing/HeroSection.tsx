@@ -1,104 +1,63 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion, useReducedMotion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
-const slides = [
-  { url: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=1920&h=800&fit=crop", alt: "Gaming laptop setup" },
-  { url: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=1920&h=800&fit=crop", alt: "Desktop computer workstation" },
-  { url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1920&h=800&fit=crop", alt: "Laptop on desk" },
-  { url: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&h=800&fit=crop", alt: "Computer hardware components" },
-  { url: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1920&h=800&fit=crop", alt: "Modern tech workspace" },
-];
+// One calm photograph instead of a slideshow. Swap this for a photo of your own shop when you have one.
+const HERO_IMAGE = "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1200&h=1400&fit=crop";
 
-const fadeUp = (delay: number) => ({
-  initial: { opacity: 0, y: 40 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.65, ease: "easeOut", delay },
-});
+const go = (id: string) => document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
 
 const HeroSection = () => {
-  const [current, setCurrent] = useState(0);
+  const reduce = useReducedMotion();
+  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: () => api<{ address: string | null }>("/settings", { auth: false }), staleTime: 300_000 });
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrent(prev => (prev + 1) % slides.length), 4000);
-    return () => clearInterval(timer);
-  }, []);
+  // the single orchestrated moment on the page: the headline settles, then the photograph
+  const rise = (delay: number) => reduce ? {} : ({
+    initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1], delay },
+  } as const);
 
   return (
-    <section className="relative min-h-[500px] md:min-h-[600px] flex items-center overflow-hidden">
-      {/* Slideshow background */}
-      <div className="absolute inset-0">
-        <AnimatePresence mode="sync">
-          <motion.img
-            key={slides[current].url}
-            src={slides[current].url}
-            alt={slides[current].alt}
-            className="absolute inset-0 w-full h-full object-cover"
-            width={1920}
-            height={800}
-            initial={{ opacity: 0, scale: 1.04 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: "easeInOut" }}
-          />
-        </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-r from-accent/90 via-accent/70 to-transparent" />
-      </div>
+    <section className="container mx-auto px-6 lg:px-10">
+      <div className="grid items-center gap-12 py-14 md:py-20 lg:grid-cols-12 lg:gap-16 lg:py-28">
+        <div className="lg:col-span-7">
+          <motion.h1 {...rise(0)} className="max-w-[16ch] text-[2.75rem] leading-[1.02] sm:text-6xl lg:text-[5.25rem]">
+            Good computers, looked after properly.
+          </motion.h1>
 
-      {/* Slide dots */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            aria-label={`Go to slide ${i + 1}`}
-            className={`h-2 rounded-full transition-all duration-300 ${i === current ? "w-6 bg-primary" : "w-2 bg-white/50"}`}
-          />
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 relative z-10 py-12 md:py-20">
-        <div className="max-w-full md:max-w-2xl">
-
-          <motion.div {...fadeUp(0)}>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold text-accent-foreground leading-tight">
-              ALPHA COMPUTERS NANYUKI:
-            </h1>
-          </motion.div>
-
-          <motion.div {...fadeUp(0.2)}>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold text-primary leading-tight mb-4">
-              YOUR TECH DESTINATION
-            </h1>
-          </motion.div>
-
-          <motion.p
-            {...fadeUp(0.4)}
-            className="text-base md:text-lg text-accent-foreground/80 mb-6 md:mb-8 max-w-lg"
-          >
-            Shop the best, repair with the experts. Your trusted technology hub in Nanyuki, Kenya.
+          <motion.p {...rise(0.15)} className="mt-7 max-w-md text-[1.05rem] leading-relaxed text-muted-foreground">
+            Laptops, desktops and parts from brands you know, with repairs and custom builds done by our own technicians in Nanyuki.
           </motion.p>
 
-          <motion.div {...fadeUp(0.6)} className="flex flex-wrap gap-3 md:gap-4">
-            <Button
-              size="lg"
-              className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px]"
-              onClick={() => document.querySelector("#catalog")?.scrollIntoView({ behavior: "smooth" })}
+          <motion.div {...rise(0.3)} className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+            <button
+              onClick={() => go("#catalog")}
+              className="inline-flex h-12 items-center rounded-md bg-primary px-7 text-[0.95rem] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              SHOP NOW
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-sm md:text-base font-heading font-semibold px-6 md:px-8 min-h-[44px] border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
-              onClick={() => document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" })}
+              Shop laptops and desktops
+            </button>
+            <button
+              onClick={() => go("#services")}
+              className="text-[0.95rem] font-medium underline underline-offset-[6px] decoration-1 decoration-foreground/40 transition-colors hover:decoration-primary"
             >
-              BOOK A REPAIR
-            </Button>
+              Book a repair
+            </button>
           </motion.div>
 
+          {settings?.address && (
+            <motion.p {...rise(0.45)} className="mt-14 max-w-sm border-t pt-5 text-sm leading-relaxed text-muted-foreground">
+              Come and see us: {settings.address}
+            </motion.p>
+          )}
         </div>
+
+        <motion.div {...rise(0.2)} className="relative lg:col-span-5">
+          {/* an offset hairline frame: quiet, and it makes the photo feel mounted */}
+          <div aria-hidden className="absolute inset-0 translate-x-3 translate-y-3 rounded-md border border-foreground/15 sm:translate-x-4 sm:translate-y-4" />
+          <img
+            src={HERO_IMAGE} alt="A laptop on a wooden desk" width={1200} height={1400} fetchPriority="high"
+            className="relative aspect-[5/4] w-full rounded-md bg-muted object-cover sm:aspect-[4/3] lg:aspect-[4/5]"
+          />
+        </motion.div>
       </div>
     </section>
   );

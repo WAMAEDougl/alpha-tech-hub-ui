@@ -9,13 +9,13 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1280px",
       },
     },
     extend: {
       fontFamily: {
-        heading: ["Rajdhani", "sans-serif"],
-        body: ["Space Grotesk", "sans-serif"],
+        heading: ["var(--font-heading)", "Rajdhani", "sans-serif"],
+        body: ["var(--font-body)", "Space Grotesk", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

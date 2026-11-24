@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SectionHeading from "./SectionHeading";
 import { Search, Send, CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,10 +75,9 @@ const ServicesSection = () => {
   }
 
   return (
-    <section id="services" className="py-16">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-heading font-bold text-center mb-2">Our Services</h2>
-        <p className="text-muted-foreground text-center mb-10">Expert repair and maintenance for all your tech needs</p>
+    <section id="services" className="scroll-mt-20 border-t py-20">
+      <div className="container mx-auto px-6 lg:px-10">
+        <SectionHeading title="Repairs and servicing" intro="Repair and maintenance for your laptops, desktops and other devices. Book online and follow your repair with the ticket number." />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {activeServices.map((service, i) => (
@@ -88,16 +88,16 @@ const ServicesSection = () => {
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full hover:shadow-lg transition-shadow group">
+              <Card className="h-full transition-colors hover:border-foreground/30 group">
                 <CardContent className="p-6 flex flex-col h-full">
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <service.icon className="h-6 w-6 text-primary" />
+                  <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center mb-5">
+                    <service.icon className="h-5 w-5 text-foreground" />
                   </div>
                   <h3 className="font-heading font-semibold text-xl mb-2">{service.title}</h3>
                   <p className="text-muted-foreground text-sm mb-3 flex-1">{service.desc}</p>
-                  <p className="text-primary font-semibold mb-4">From KES {service.priceFrom.toLocaleString()}</p>
-                  <Button className="w-full min-h-[44px]" onClick={() => openBooking(service)}>
-                    BOOK THIS SERVICE
+                  <p className="font-semibold tabular-nums mb-4">From KES {service.priceFrom.toLocaleString()}</p>
+                  <Button variant="outline" className="w-full min-h-[44px] hover:bg-primary hover:text-primary-foreground hover:border-primary" onClick={() => openBooking(service)}>
+                    Book this service
                   </Button>
                 </CardContent>
               </Card>

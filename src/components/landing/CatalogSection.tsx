@@ -1,159 +1,92 @@
-import { useState } from "react";
-import { Star, ShoppingCart, SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
-import { useCart } from "@/contexts/CartContext";
+import { useMemo, useState } from "react";
 import { useProducts } from "@/contexts/ProductsContext";
-import { useNavigate } from "react-router-dom";
+import SectionHeading from "./SectionHeading";
+import ProductCard from "./ProductCard";
 
-const categories = ["All", "Laptops", "Desktops", "Accessories", "Monitors", "PC Parts", "Laptop Parts"];
-const brands = ["ASUS", "Dell", "HP", "Lenovo", "Logitech", "Samsung"];
+const select =
+  "h-10 rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors hover:border-foreground/40 focus-visible:border-primary";
+
+type Sort = "featured" | "price-asc" | "price-desc";
 
 const CatalogSection = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [priceRange, setPriceRange] = useState([0]);
-  const [showFilters, setShowFilters] = useState(false);
-  const { addItem } = useCart();
-  const { products } = useProducts();
-  const navigate = useNavigate();
+  const { products, loading, error, refresh } = useProducts();
+  const [category, setCategory] = useState("All");
+  const [brand, setBrand] = useState("");
+  const [condition, setCondition] = useState("");
+  const [sort, setSort] = useState<Sort>("featured");
 
-  const filtered = products.filter(p =>
-    (selectedCategory === "All" || p.category === selectedCategory) &&
-    p.price >= priceRange[0] * 2000
-  );
+  // tabs and brand choices come from what is actually in the shop, so there is never an empty category to click
+  const categories = useMemo(() => {
+    const order = ["Laptops", "Desktops", "Monitors", "Accessories", "PC Parts", "Laptop Parts"];
+    const present = Array.from(new Set(products.map(p => p.category)));
+    present.sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99) || a.localeCompare(b));
+    return ["All", ...present];
+  }, [products]);
+  const brands = useMemo(() => Array.from(new Set(products.map(p => p.brand))).sort(), [products]);
+
+  const shown = useMemo(() => {
+    const list = products.filter(p =>
+      (category === "All" || p.category === category) && (!brand || p.brand === brand) && (!condition || p.condition === condition));
+    if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
+    if (sort === "price-desc") return [...list].sort((a, b) => b.price - a.price);
+    return list;
+  }, [products, category, brand, condition, sort]);
+
+  const filtered = category !== "All" || !!brand || !!condition;
 
   return (
-    <section id="catalog" className="py-16 bg-secondary/30">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-heading font-bold text-center mb-2">Shop Our Products</h2>
-        <p className="text-muted-foreground text-center mb-10">Premium hardware at competitive prices</p>
+    <section id="catalog" className="scroll-mt-20 border-t bg-secondary/40 py-20">
+      <div className="container mx-auto px-6 lg:px-10">
+        <SectionHeading title="The shop" intro="New and refurbished laptops, desktops, monitors and accessories, priced in shillings and ready to collect or deliver." />
 
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Sidebar Filters */}
-          <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 shrink-0`}>
-            <Card>
-              <CardContent className="p-5 space-y-6">
-                <div>
-                  <h3 className="font-heading font-semibold mb-3">Categories</h3>
-                  <div className="space-y-2">
-                    {categories.map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`block w-full text-left px-3 py-2 rounded-md text-sm transition-colors min-h-[44px] ${selectedCategory === cat ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-heading font-semibold mb-3">Price Range</h3>
-                  <Slider
-                    defaultValue={[0]}
-                    max={100}
-                    step={1}
-                    onValueChange={setPriceRange}
-                    className="mb-2"
-                  />
-                  <p className="text-xs text-muted-foreground">From KES {(priceRange[0] * 2000).toLocaleString()}</p>
-                </div>
-                <div>
-                  <h3 className="font-heading font-semibold mb-3">Brand</h3>
-                  <div className="space-y-2">
-                    {brands.map(brand => (
-                      <label key={brand} className="flex items-center gap-2 text-sm">
-                        <Checkbox />
-                        {brand}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-heading font-semibold mb-3">Condition</h3>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm"><Checkbox defaultChecked /> New</label>
-                    <label className="flex items-center gap-2 text-sm"><Checkbox /> Refurbished</label>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-heading font-semibold mb-3">Rating</h3>
-                  <div className="space-y-1">
-                    {[5, 4, 3].map(r => (
-                      <button key={r} className="flex items-center gap-1 text-sm hover:text-primary transition-colors">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`h-3.5 w-3.5 ${i < r ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                        ))}
-                        <span className="ml-1">& up</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
+        {/* categories as a quiet row of tabs */}
+        <div role="tablist" aria-label="Product categories" className="-mx-1 mb-6 flex gap-1 overflow-x-auto px-1 pb-1">
+          {categories.map(c => (
+            <button
+              key={c} role="tab" aria-selected={category === c} onClick={() => setCategory(c)}
+              className={`shrink-0 border-b-2 px-3 py-2 text-sm transition-colors ${category === c ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
 
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6 lg:hidden">
-              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="min-h-[44px] px-4">
-                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filtered.map((product, i) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <Card
-                    className="group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/products/${product.id}`)}
-                  >
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        width={400}
-                        height={300}
-                      />
-                      {product.condition === "Refurbished" && (
-                        <Badge className="absolute top-3 left-3" variant="secondary">Refurbished</Badge>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-0.5 mb-2">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`h-3.5 w-3.5 ${i < product.rating ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
-                        ))}
-                      </div>
-                      <h3 className="font-heading font-semibold text-lg mb-1">{product.name}</h3>
-                      <p className="text-muted-foreground text-sm mb-3">{product.summary}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-primary">KES {product.price.toLocaleString()}</span>
-                        <Button size="sm" className="min-h-[44px]" onClick={(e) => {
-                          e.stopPropagation();
-                          addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, imageUrl: product.images[0] });
-                          toast.success(`${product.name} added to cart`);
-                        }}>
-                          <ShoppingCart className="h-4 w-4 mr-1" /> Add to Cart
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+        <div className="mb-10 flex flex-wrap items-center gap-3">
+          <p className="mr-auto text-sm text-muted-foreground" aria-live="polite">
+            {loading ? "Loading…" : `${shown.length} ${shown.length === 1 ? "product" : "products"}`}
+          </p>
+          <label className="sr-only" htmlFor="f-brand">Brand</label>
+          <select id="f-brand" className={select} value={brand} onChange={e => setBrand(e.target.value)}>
+            <option value="">All brands</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}
+          </select>
+          <label className="sr-only" htmlFor="f-cond">Condition</label>
+          <select id="f-cond" className={select} value={condition} onChange={e => setCondition(e.target.value)}>
+            <option value="">New and refurbished</option><option value="New">New only</option><option value="Refurbished">Refurbished only</option>
+          </select>
+          <label className="sr-only" htmlFor="f-sort">Sort</label>
+          <select id="f-sort" className={select} value={sort} onChange={e => setSort(e.target.value as Sort)}>
+            <option value="featured">Newest first</option><option value="price-asc">Price, low to high</option><option value="price-desc">Price, high to low</option>
+          </select>
+          {filtered && (
+            <button className="text-sm underline underline-offset-4 decoration-1 text-muted-foreground hover:text-foreground"
+              onClick={() => { setCategory("All"); setBrand(""); setCondition(""); }}>Clear filters</button>
+          )}
+        </div>
+
+        {error && !loading && (
+          <div className="space-y-3 py-16 text-center">
+            <p className="text-muted-foreground">We couldn&apos;t load the shop just now. Check your connection and try again.</p>
+            <button className="h-10 rounded-md border border-foreground/20 px-4 text-sm font-medium hover:bg-muted" onClick={() => refresh()}>Try again</button>
           </div>
+        )}
+        {!loading && !error && shown.length === 0 && (
+          <p className="py-16 text-center text-muted-foreground">
+            {products.length === 0 ? "New stock is on its way. Call or WhatsApp us to ask what is available." : "Nothing matches those filters. Clear them to see everything."}
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {shown.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </div>
     </section>
