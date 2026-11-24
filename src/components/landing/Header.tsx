@@ -240,10 +240,10 @@ const Header = () => {
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 border-b border-white/25 dark:border-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ${
           scrolled
-            ? "bg-card/90 backdrop-blur-xl shadow-[0_4px_32px_rgba(229,62,62,0.15)]"
-            : "bg-card/95 backdrop-blur-md"
+            ? "bg-card/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.35)]"
+            : "bg-card/40"
         }`}
       >
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -384,7 +384,7 @@ const Header = () => {
         <AnimatePresence>
           {mobileOpen && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }} className="lg:hidden border-t bg-card">
+              transition={{ duration: 0.2, ease: "easeInOut" }} className="lg:hidden border-t border-white/20 bg-card/80 backdrop-blur-xl">
               <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
                 <div className="mb-3">
                   <SearchBar onNavigate={() => setMobileOpen(false)} />
