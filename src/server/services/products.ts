@@ -2,6 +2,7 @@ import { NotFoundException } from '../http';
 import { PrismaService } from '../prisma';
 import { InventoryService } from './inventory';
 import { CreateProductDto } from '../dto';
+import { DEMO_PRODUCTS, demoMode } from '../demo-products';
 
 /** Fields that must never reach the public storefront. */
 function toPublic<T extends Record<string, any>>(p: T) {
@@ -38,6 +39,10 @@ export class ProductsService {
   }
 
   async findAll(query?: { category?: string; search?: string }, staff = false) {
+    if (demoMode()) {
+      const q = query?.search?.toLowerCase();
+      return DEMO_PRODUCTS.filter(p => (!query?.category || p.category === query.category) && (!q || p.name.toLowerCase().includes(q)));
+    }
     const rows = await this.prisma.product.findMany({
       where: {
         isActive: true,
@@ -50,6 +55,11 @@ export class ProductsService {
   }
 
   async findOne(id: string, staff = false) {
+    if (demoMode()) {
+      const d = DEMO_PRODUCTS.find(p => p.id === id);
+      if (!d) throw new NotFoundException('Product not found');
+      return d;
+    }
     const p = await this.prisma.product.findUnique({ where: { id } });
     if (!p || (!staff && !p.isActive)) throw new NotFoundException('Product not found');
     return staff ? toStaff(p) : toPublic(p);
